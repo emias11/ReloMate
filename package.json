@@ -1,7 +1,7 @@
 {
   "name": "my-app",
   "version": "0.1.0",
-  "homepage": "https://emias11.github.io/ReloMate/index.js",
+  "homepage": "https://emias11.github.io/ReloMate",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.16.5",
