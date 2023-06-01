@@ -33,7 +33,7 @@ jobs:
       run: |
         git config --global user.name emias11
         git config --global user.email mia.stapleton1@gmail.com
-        git remote set-url origin https://emias11@github.com/emias11/ReloMate
+        git remote set-url origin https://github.com/emias11/ReloMate.git
         npm run deploy
       env:
         user_name: 'github-actions[bot]'
