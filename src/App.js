@@ -4,12 +4,9 @@ import {
   ButtonGroup,
   Flex,
   HStack,
-  IconButton,
   Input,
   SkeletonText,
-  Text,
 } from "@chakra-ui/react";
-import { FaLocationArrow, FaTimes } from "react-icons/fa";
 
 import {
   useJsApiLoader,
@@ -41,19 +38,21 @@ function App() {
   }
 
   async function placeMarker() {
-    if (originRef.current.value === "") {
-      return;
-    }
-    // eslint-disable-next-line no-undef
-    const directionsService = new google.maps.DirectionsService();
-    const results = await directionsService.route({
-      origin: originRef.current.value,
-      destination: destiantionRef.current.value,
-      // eslint-disable-next-line no-undef
-      travelMode: google.maps.TravelMode.DRIVING,
-    });
-    <Marker position={{ lat: 51.4988, lng: -0.181718 }} />;
-    setDirectionsResponse(results);
+    // if (originRef.current.value === "") {
+    //   return;
+    // }
+    // // eslint-disable-next-line no-undef
+    // const directionsService = new google.maps.DirectionsService();
+    // const results = await directionsService.route({
+    //   origin: originRef.current.value,
+    //   destination: destiantionRef.current.value,
+    //   // eslint-disable-next-line no-undef
+    //   travelMode: google.maps.TravelMode.DRIVING,
+    // });
+    const center = { lat: 48.8584, lng: 2.2945 };
+    <Marker position={center} />;
+    //<Marker position={{ lat: 51.4988, lng: -0.181718 }} />;
+    //setDirectionsResponse(results);
   }
 
   return (
