@@ -1,5 +1,6 @@
 import {
   Box,
+  Text,
   Button,
   ButtonGroup,
   Flex,
@@ -23,7 +24,7 @@ const center = { lat: 51.4988, lng: -0.181718 };
 
 function App() {
 
-  const [cookies, setCookie] = useCookies(["lat", "lng"]);
+  const [cookies, setCookie] = useCookies(["location"]);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -56,8 +57,7 @@ function App() {
     // });
     const center = { lat: 48.8584, lng: 2.2945 };
     <Marker position={center} />;
-    setCookie("lat", 48.8584, { path: "/" });
-    setCookie("lng", 2.2945, { path: "/" });
+    setCookie("location", originRef.current.value, { path: "/" });
     //<Marker position={{ lat: 51.4988, lng: -0.181718 }} />;
     //setDirectionsResponse(results);
   }
@@ -117,7 +117,9 @@ function App() {
               </Button>
             </ButtonGroup>
           </HStack>
-          <HStack spacing={4} mt={4} justifyContent="space-between"></HStack>
+          <HStack spacing={4} mt={4} justifyContent="space-between">
+            <Text>Location: {cookies.location} </Text>
+          </HStack>
         </Box>
       </Flex>
     </CookiesProvider>
