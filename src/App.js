@@ -105,7 +105,7 @@ function App() {
               <Autocomplete>
                 <Input
                   type="text"
-                  placeholder="Where will you be working..."
+                  placeholder="Where will you be working"
                   ref={originRef}
                 />
               </Autocomplete>
