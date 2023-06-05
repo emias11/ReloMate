@@ -27,7 +27,7 @@ function App() {
   const [cookies, setCookie] = useCookies(["location"]);
 
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
     libraries: ["places"],
   });
 
