@@ -1,5 +1,6 @@
 import {
   Box,
+  Text,
   Button,
   ButtonGroup,
   Flex,
@@ -15,6 +16,7 @@ import {
   Autocomplete,
   DirectionsRenderer,
 } from "@react-google-maps/api";
+import { async } from "q";
 import { useRef, useState } from "react";
 
 const center = { lat: 51.4988, lng: -0.181718 };
@@ -30,29 +32,17 @@ function App() {
 
   /** @type React.MutableRefObject<HTMLInputElement> */
   const originRef = useRef();
-  /** @type React.MutableRefObject<HTMLInputElement> */
-  const destiantionRef = useRef();
 
   if (!isLoaded) {
     return <SkeletonText />;
   }
 
+  var location = "";
+
   async function placeMarker() {
-    // if (originRef.current.value === "") {
-    //   return;
-    // }
-    // // eslint-disable-next-line no-undef
-    // const directionsService = new google.maps.DirectionsService();
-    // const results = await directionsService.route({
-    //   origin: originRef.current.value,
-    //   destination: destiantionRef.current.value,
-    //   // eslint-disable-next-line no-undef
-    //   travelMode: google.maps.TravelMode.DRIVING,
-    // });
-    const center = { lat: 48.8584, lng: 2.2945 };
-    <Marker position={center} />;
+    location = originRef.current.value;
+    //add some code to update the cookie here
     //<Marker position={{ lat: 51.4988, lng: -0.181718 }} />;
-    //setDirectionsResponse(results);
   }
 
   return (
@@ -67,7 +57,7 @@ function App() {
         {/* Google Map Box */}
         <GoogleMap
           center={center}
-          zoom={15}
+          zoom={13}
           mapContainerStyle={{ width: "100%", height: "100%" }}
           options={{
             zoomControl: false,
@@ -77,7 +67,6 @@ function App() {
           }}
           onLoad={(map) => setMap(map)}
         >
-          {/* <Marker position={center} /> */}
           {directionsResponse && (
             <DirectionsRenderer directions={directionsResponse} />
           )}
@@ -109,7 +98,9 @@ function App() {
             </Button>
           </ButtonGroup>
         </HStack>
-        <HStack spacing={4} mt={4} justifyContent="space-between"></HStack>
+        <HStack spacing={4} mt={4} justifyContent="space-between">
+          <Text>Location: {location} </Text>
+        </HStack>
       </Box>
     </Flex>
   );
