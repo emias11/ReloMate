@@ -61,6 +61,17 @@ function App() {
     //setDirectionsResponse(results);
   }
 
+  function getLatLong(address) {
+    // var geocoder = new google.maps.Geocoder();
+    // geocoder.geocode( { 'address': address}, function(results, status) {
+    //   if (status == google.maps.GeocoderStatus.OK) {
+    //     return results[0].geometry.location
+    //   } else {
+    //     console.log("Geocoding failed: " + status);
+    //   }
+    // });
+  }
+
   return (
     <CookiesProvider>
       <Flex
