@@ -24,6 +24,9 @@ const center = { lat: 51.4988, lng: -0.181718 };
 
 function App() {
   const [cookies, setCookie] = useCookies(["location"]);
+  const [id, setId] = useState(0);
+  const [markers, setMarkers] = useState([]);
+  const [drawMarker, setDrawMarker] = useState(false);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -42,23 +45,14 @@ function App() {
     return <SkeletonText />;
   }
 
+  const addMarker = (coords) => {
+    setId((id) => id + 1);
+    setMarkers((markers) => markers.concat([{ coords, id }]));
+  };
+
   async function placeMarker() {
-    // if (originRef.current.value === "") {
-    //   return;
-    // }
-    // // eslint-disable-next-line no-undef
-    // const directionsService = new google.maps.DirectionsService();
-    // const results = await directionsService.route({
-    //   origin: originRef.current.value,
-    //   destination: destiantionRef.current.value,
-    //   // eslint-disable-next-line no-undef
-    //   travelMode: google.maps.TravelMode.DRIVING,
-    // });
-    const center = { lat: 48.8584, lng: 2.2945 };
-    <Marker position={center} />;
+    addMarker(e.latLng.toJSON());
     setCookie("location", originRef.current.value, { path: "/" });
-    //<Marker position={{ lat: 51.4988, lng: -0.181718 }} />;
-    //setDirectionsResponse(results);
   }
 
   return (
@@ -85,6 +79,18 @@ function App() {
             onLoad={(map) => setMap(map)}
           >
             {/* <Marker position={center} /> */}
+            {markers
+              ? markers.map((marker) => {
+                  return (
+                    <Marker
+                      key={marker.id}
+                      draggable={drawMarker}
+                      position={marker.coords}
+                      onDragEnd={(e) => (marker.coords = e.latLng.toJSON())}
+                    />
+                  );
+                })
+              : null}
             {directionsResponse && (
               <DirectionsRenderer directions={directionsResponse} />
             )}
@@ -111,7 +117,7 @@ function App() {
             </Box>
 
             <ButtonGroup>
-              <Button colorScheme="pink" type="Place" onClick={placeMarker}>
+              <Button colorScheme="pink" type="Place" onClick={placeMarker()}>
                 Place
               </Button>
             </ButtonGroup>
