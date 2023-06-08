@@ -1,4 +1,8 @@
-/* global google */
+/*global google*/
+import React from 'react';
+import Popup from 'reactjs-popup';
+import 'reactjs-popup/dist/index.css';
+
 import {
   Box,
   Text,
@@ -8,6 +12,7 @@ import {
   HStack,
   Input,
   SkeletonText,
+  Checkbox
 } from "@chakra-ui/react";
 
 import {
@@ -21,7 +26,7 @@ import { useRef, useState } from "react";
 
 import { CookiesProvider, useCookies } from "react-cookie";
 
-const commuteTime = 40 * 60; // seconds
+var commuteTime = 40 * 60; // seconds
 const avgWalkingSpeed = 1; // m/s
 const center = { lat: 51.4988, lng: -0.181718 };
 const tubeStations = [
@@ -31,11 +36,11 @@ const tubeStations = [
   { name: "Earls Court", coords: { lat: 51.4912, lng: -0.1931 } },
   { name: "Gloucester Road", coords: { lat: 51.4941, lng: -0.1829 } },
   { name: "South Kensington", coords: { lat: 51.4941, lng: -0.1737 } },
-  { name: "Southall", coords: { lat: 51.5054, lng: -0.378 } },
-];
+  { name: "Southall", coords: { lat: 51.5054, lng: -0.3780 } },
+]
 
 function App() {
-  const [cookies, setCookie] = useCookies(["location", "lat", "long"]);
+  const [cookies, setCookie] = useCookies(["location"]);
   const [libraries] = useState(["places"]);
 
   const { isLoaded } = useJsApiLoader({
@@ -45,9 +50,6 @@ function App() {
 
   const [map, setMap] = useState(/** @type google.maps.Map */ null);
   const [directionsResponse, setDirectionsResponse] = useState(null);
-
-  // Track the circles added to the map
-  const [circles, setCircles] = useState([]);
 
   //for markers
   const [id, setId] = useState(0);
@@ -61,13 +63,14 @@ function App() {
 
   /** @type React.MutableRefObject<HTMLInputElement> */
   const originRef = useRef();
+  const inputRef = useRef(null);
 
   if (!isLoaded) {
     return <SkeletonText />;
   }
 
-  async function openFilterBox() {
-    console.log("placeholder text");
+  function saveCommuteTime() {
+    commuteTime = inputRef.current.value;
   }
 
   async function placeMarker() {
@@ -76,14 +79,12 @@ function App() {
     await geocoder.geocode({ address: address }, async function (results, status) {
       if (status == google.maps.GeocoderStatus.OK) {
         const coord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
-        //will store text location, lat, long all as strings
-        setCookie("location", originRef.current.value, { path: "/" });
-        setCookie("lat", coord.lat, { path: "/" });
-        setCookie("long", coord.lng, { path: "/" });
         if (drawMarker) {
-          clearCircles();
           addMarker(coord);
-          getTime(address);
+          for (let i = 0; i < tubeStations.length; i++) {
+            const tubeStation = tubeStations[i];
+            getTime(address, tubeStation.name);
+          }
         }
       } else {
         console.log("Geocoding failed: " + status);
@@ -91,37 +92,23 @@ function App() {
     });
     setCookie("location", originRef.current.value, { path: "/" });
   }
-
   // Gets the time from the Google Maps API to get from the origin to the destination using public transport
-  async function getTime(origin) {
-    const directionsService = new google.maps.DistanceMatrixService();
-    await directionsService.getDistanceMatrix(
+  async function getTime(origin, destination) {
+    const directionsService = new google.maps.DirectionsService();
+    await directionsService.route(
       {
-        origins: [origin],
-        destinations: tubeStations.map((station) => station.coords),
+        origin: origin,
+        destination: destination,
         travelMode: google.maps.TravelMode.TRANSIT,
       },
       (result, status) => {
-     if (status === 'OK') { 
-      console.log(result);
-      console.log(origin);
-      let address = originRef.current.value;
-      var geocoder = new google.maps.Geocoder();
-      geocoder.geocode({ address: address }, async function (results, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
-          const originCoord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
-          placeCircle(originCoord, avgWalkingSpeed * commuteTime);
-        }
-      });
-  
-      for (let i = 0; i < tubeStations.length; i++) {
-        const tubeStation = tubeStations[i];
-          if (result.rows[0].elements[i].duration.value < commuteTime) {
-            placeCircle(tubeStation.coords, avgWalkingSpeed * (commuteTime - result.rows[0].elements[i].duration.value));
+        if (status === google.maps.DirectionsStatus.OK) {
+          console.log(destination, result.routes[0].legs[0].duration);
+          if (result.routes[0].legs[0].duration.value < commuteTime) {
+            placeCircle(result.routes[0].legs[0].end_location, avgWalkingSpeed * (commuteTime - result.routes[0].legs[0].duration.value));
           }
-        }
-      } else {
-        console.error(`error fetching directions ${result}`);
+        } else {
+          console.error(`error fetching directions ${result}`);
         }
       }
     );
@@ -134,32 +121,12 @@ function App() {
       strokeOpacity: 0.8,
       strokeWeight: 0,
       fillColor: "#FF0000",
-      fillOpacity: 0.15,
+      fillOpacity: 0.35,
       map,
       center: center,
       radius: radius,
     });
-
-    // Add the circle to the circles state
-    setCircles((prevCircles) => [...prevCircles, circle]);
   }
-
-  // Clear all circles from the map
-  function clearCircles() {
-    // Remove each circle from the map
-    circles.forEach((circle) => circle.setMap(null));
-
-    // Clear the circles state
-    setCircles([]);
-  }
-
-  // function calcCircleRadiusDistance() {
-  //   //1 meter per second walking speed.
-  //   //Change time in seconds with filter button slider.
-  //   let distance = avgWalkingSpeed * 2100
-  //   return distance
-  // }
-
 
   return (
     <CookiesProvider>
@@ -185,27 +152,19 @@ function App() {
             }}
             onLoad={(map) => setMap(map)}
           >
-            console.log(cookies);
-            {
-              <Marker
-                position={{
-                  lat: Number(cookies.lat),
-                  lng: Number(cookies.long),
-                }}
-              />
-            }
             {markers
               ? markers.map((marker) => {
-                  return (
-                    <Marker
-                      key={marker.id}
-                      draggable={drawMarker}
-                      position={marker.coords}
-                      onDragEnd={(e) => (marker.coords = e.latLng.toJSON())}
-                    />
-                  );
-                })
+                return (
+                  <Marker
+                    key={marker.id}
+                    draggable={drawMarker}
+                    position={marker.coords}
+                    onDragEnd={(e) => (marker.coords = e.latLng.toJSON())}
+                  />
+                );
+              })
               : null}
+            {/* <Marker position={center} /> */}
             {directionsResponse && (
               <DirectionsRenderer directions={directionsResponse} />
             )}
@@ -230,15 +189,17 @@ function App() {
                 />
               </Autocomplete>
             </Box>
-
             <ButtonGroup>
-              <Button colorScheme="pink" type="Place" onClick={placeMarker}>
-                Place
-              </Button>
-              <Button colorScheme="gray" type="Filter" onClick={openFilterBox}>
-                Filter
-              </Button>
+              <Button colorScheme="pink" type="Place" onClick={placeMarker}>Place</Button>
             </ButtonGroup>
+            <Popup trigger={<Button colorScheme="gray"> Filter </Button>} position={"bottom center"}>
+              <label>Max commute time </label>
+              <input ref={inputRef} type="number" size={1} />
+              <Button onClick={saveCommuteTime}> Enter </Button> <div></div>
+              <Checkbox /><span> Tube </span>
+              <Checkbox /><span> Walking </span> <div></div>
+              <Checkbox /><span> Cycling </span>
+            </Popup>
           </HStack>
           <HStack spacing={4} mt={4} justifyContent="space-between">
             <Text>Location: {cookies.location} </Text>
