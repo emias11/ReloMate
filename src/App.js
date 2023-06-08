@@ -29,11 +29,22 @@ const center = { lat: 51.4988, lng: -0.181718 };
 const tubeStations = [
   { name: "Hammersmith", coords: { lat: 51.492268, lng: -0.222749 } },
   { name: "Barons Court", coords: { lat: 51.4902, lng: -0.2137 } },
-  { name: "West Kensington", coords: { lat: 51.4902, lng: -0.2137 } },
   { name: "Earls Court", coords: { lat: 51.4912, lng: -0.1931 } },
   { name: "Gloucester Road", coords: { lat: 51.4941, lng: -0.1829 } },
   { name: "South Kensington", coords: { lat: 51.4941, lng: -0.1737 } },
   { name: "Southall", coords: { lat: 51.5054, lng: -0.378 } },
+  { name: "Notting Hill Gate", coords: { lat: 51.5091, lng: -0.1961 } },
+  { name: "Embankment", coords: { lat: 51.5073, lng: -0.1223 } },
+  { name: "Westminster", coords: { lat: 51.501, lng: -0.1247 } },
+  { name: "Mile End", coords: { lat: 51.5255, lng: -0.0335 } },
+  { name: "Liverpool Street", coords: { lat: 51.5178, lng: -0.0825 } },
+  { name: "King's Cross St. Pancras", coords: { lat: 51.5308, lng: -0.1233 } },
+  { name: "Euston", coords: { lat: 51.5281, lng: -0.1336 } },
+  { name: "Ealing Broadway", coords: { lat: 51.5142, lng: -0.3012 } },
+  { name: "Waterloo", coords: { lat: 51.5036, lng: -0.1143 } },
+  { name: "Stratford", coords: { lat: 51.5416, lng: -0.0034 } },
+  { name: "Goodmayes", coords: { lat: 51.5655, lng: 0.1101 } },
+  { name: "Putney Bridge", coords: { lat: 51.4686, lng: -0.2081 } },
 ];
 
 function App() {
