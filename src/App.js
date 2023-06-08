@@ -21,6 +21,15 @@ import { useRef, useState } from "react";
 import { CookiesProvider, useCookies } from "react-cookie";
 
 const center = { lat: 51.4988, lng: -0.181718 };
+const tubeStations = [
+  {name: "Hammersmith", coords: {lat: 51.492268, lng: -0.222749}},
+  {name: "Barons Court", coords: {lat: 51.4902, lng: -0.2137}},
+  {name: "West Kensington", coords: {lat: 51.4902, lng: -0.2137}},
+  {name: "Earls Court", coords: {lat: 51.4912, lng: -0.1931}},
+  {name: "Gloucester Road", coords: {lat: 51.4941, lng: -0.1829}},  
+  {name: "South Kensington", coords: {lat: 51.4941, lng: -0.1737}},
+  {name: "Southall", coords: {lat: 51.5054, lng: -0.3780}},
+]
 
 function App() {
   const [cookies, setCookie] = useCookies(["location"]);
@@ -51,20 +60,45 @@ function App() {
     return <SkeletonText />;
   }
 
-  const placeMarker = () => (
-    drawMarker ? addMarker(center) : null,
-    setCookie("location", originRef.current.value, { path: "/" })
-  );
-
-  function getLatLong(address) {
+  async function placeMarker() {
+    // let address = originRef.current.value;
     // var geocoder = new google.maps.Geocoder();
-    // geocoder.geocode({ address: address }, function (results, status) {
+    // await geocoder.geocode({ address: address }, function (results, status) {
     //   if (status == google.maps.GeocoderStatus.OK) {
-    //     return results[0].geometry.location;
+    //     const coord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
+    //     if (drawMarker) {
+    //       addMarker(coord);
+    //       for (let i = 0; i < tubeStations.length; i++) {
+    //         const tubeStation = tubeStations[i];
+    //         console.log(tubeStation.name);
+    //         addMarker(tubeStation.coords);
+    //       }
+    //     }
     //   } else {
     //     console.log("Geocoding failed: " + status);
     //   }
     // });
+    // setCookie("location", originRef.current.value, { path: "/" });
+    // console.log(getTime("Hammersmith", "Southall"));
+  }
+
+  // Gets the time from the Google Maps API to get from the origin to the destination using public transport
+  async function getTime(origin, destination) {
+    // const directionsService = new google.maps.DirectionsService();
+    // await directionsService.route(
+    //   {
+    //     origin: origin,
+    //     destination: destination,
+    //     travelMode: google.maps.TravelMode.TRANSIT,
+    //   },
+    //   (result, status) => {
+    //     if (status === google.maps.DirectionsStatus.OK) {
+    //       return result.routes[0].legs[0].duration;
+    //     } else {
+    //       console.error(`error fetching directions ${result}`);
+    //     }
+    //   }
+    // );
   }
 
   return (
