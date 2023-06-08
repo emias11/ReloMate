@@ -24,42 +24,43 @@ const center = { lat: 51.4988, lng: -0.181718 };
 
 function App() {
   const [cookies, setCookie] = useCookies(["location"]);
-  const [id, setId] = useState(0);
-  const [markers, setMarkers] = useState([]);
-  const [drawMarker, setDrawMarker] = useState(false);
+  const [libraries] = useState(["places"]);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-    libraries: ["places"],
+    libraries,
   });
 
   const [map, setMap] = useState(/** @type google.maps.Map */ null);
   const [directionsResponse, setDirectionsResponse] = useState(null);
 
-  /** @type React.MutableRefObject<HTMLInputElement> */
-  const originRef = useRef();
-  /** @type React.MutableRefObject<HTMLInputElement> */
-  const destiantionRef = useRef();
-
-  if (!isLoaded) {
-    return <SkeletonText />;
-  }
+  //for markers
+  const [id, setId] = useState(0);
+  const [markers, setMarkers] = useState([]);
+  const [drawMarker, setDrawMarker] = useState(true);
 
   const addMarker = (coords) => {
     setId((id) => id + 1);
     setMarkers((markers) => markers.concat([{ coords, id }]));
   };
 
-  async function placeMarker() {
-    addMarker(e.latLng.toJSON());
-    setCookie("location", originRef.current.value, { path: "/" });
+  /** @type React.MutableRefObject<HTMLInputElement> */
+  const originRef = useRef();
+
+  if (!isLoaded) {
+    return <SkeletonText />;
   }
+
+  const placeMarker = () => (
+    drawMarker ? addMarker(center) : null,
+    setCookie("location", originRef.current.value, { path: "/" })
+  );
 
   function getLatLong(address) {
     // var geocoder = new google.maps.Geocoder();
-    // geocoder.geocode( { 'address': address}, function(results, status) {
+    // geocoder.geocode({ address: address }, function (results, status) {
     //   if (status == google.maps.GeocoderStatus.OK) {
-    //     return results[0].geometry.location
+    //     return results[0].geometry.location;
     //   } else {
     //     console.log("Geocoding failed: " + status);
     //   }
@@ -78,6 +79,7 @@ function App() {
         <Box position="absolute" left={0} top={0} h="100%" w="100%">
           {/* Google Map Box */}
           <GoogleMap
+            onClick={(e) => (drawMarker ? addMarker(e.latLng.toJSON()) : null)}
             center={center}
             zoom={12}
             mapContainerStyle={{ width: "100%", height: "100%" }}
@@ -89,7 +91,6 @@ function App() {
             }}
             onLoad={(map) => setMap(map)}
           >
-            {/* <Marker position={center} /> */}
             {markers
               ? markers.map((marker) => {
                   return (
@@ -102,6 +103,7 @@ function App() {
                   );
                 })
               : null}
+            {/* <Marker position={center} /> */}
             {directionsResponse && (
               <DirectionsRenderer directions={directionsResponse} />
             )}
@@ -128,7 +130,7 @@ function App() {
             </Box>
 
             <ButtonGroup>
-              <Button colorScheme="pink" type="Place" onClick={placeMarker()}>
+              <Button colorScheme="pink" type="Place" onClick={placeMarker}>
                 Place
               </Button>
             </ButtonGroup>
