@@ -151,14 +151,6 @@ function App() {
     setCircles([]);
   }
 
-  // function calcCircleRadiusDistance() {
-  //   //1 meter per second walking speed.
-  //   //Change time in seconds with filter button slider.
-  //   let distance = avgWalkingSpeed * 2100
-  //   return distance
-  // }
-
-
   return (
     <CookiesProvider>
       <Flex
