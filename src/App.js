@@ -8,6 +8,7 @@ import {
   HStack,
   Input,
   SkeletonText,
+  Checkbox
 } from "@chakra-ui/react";
 
 import {
@@ -17,11 +18,12 @@ import {
   Autocomplete,
   DirectionsRenderer,
 } from "@react-google-maps/api";
-import { useRef, useState } from "react";
-
+import { useRef, useState, React} from "react";
+import Popup from 'reactjs-popup';
+import 'reactjs-popup/dist/index.css';
 import { CookiesProvider, useCookies } from "react-cookie";
 
-const commuteTime = 40 * 60; // seconds
+var commuteTime = 40 * 60; // seconds
 const avgWalkingSpeed = 1; // m/s
 const center = { lat: 51.4988, lng: -0.181718 };
 const tubeStations = [
@@ -60,13 +62,14 @@ function App() {
 
   /** @type React.MutableRefObject<HTMLInputElement> */
   const originRef = useRef();
+  const inputRef = useRef(null);
 
   if (!isLoaded) {
     return <SkeletonText />;
   }
 
-  async function openFilterBox() {
-    console.log("placeholder text");
+  function saveCommuteTime() {
+    commuteTime = inputRef.current.value;
   }
 
   async function placeMarker() {
@@ -222,12 +225,15 @@ function App() {
             </Box>
 
             <ButtonGroup>
-              <Button colorScheme="pink" type="Place" onClick={placeMarker}>
-                Place
-              </Button>
-              <Button colorScheme="gray" type="Filter" onClick={openFilterBox}>
-                Filter
-              </Button>
+              <Button colorScheme="pink" type="Place" onClick={placeMarker}>Place</Button>
+            <Popup trigger={<Button colorScheme="gray"> Filter </Button>} position={"bottom center"}>
+              <label>Max commute time </label>
+              <input ref={inputRef} type="number" size={1} />
+              <Button onClick={saveCommuteTime}> Enter </Button> <div></div>
+              <Checkbox /><span> Tube </span>
+              <Checkbox /><span> Walking </span> <div></div>
+              <Checkbox /><span> Cycling </span>
+            </Popup>
             </ButtonGroup>
           </HStack>
           <HStack spacing={4} mt={4} justifyContent="space-between">
