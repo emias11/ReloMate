@@ -21,21 +21,21 @@ import { useRef, useState } from "react";
 
 import { CookiesProvider, useCookies } from "react-cookie";
 
-const commuteTime = 40*60; // seconds
+const commuteTime = 40 * 60; // seconds
 const avgWalkingSpeed = 1; // m/s
 const center = { lat: 51.4988, lng: -0.181718 };
 const tubeStations = [
-  {name: "Hammersmith", coords: {lat: 51.492268, lng: -0.222749}},
-  {name: "Barons Court", coords: {lat: 51.4902, lng: -0.2137}},
-  {name: "West Kensington", coords: {lat: 51.4902, lng: -0.2137}},
-  {name: "Earls Court", coords: {lat: 51.4912, lng: -0.1931}},
-  {name: "Gloucester Road", coords: {lat: 51.4941, lng: -0.1829}},  
-  {name: "South Kensington", coords: {lat: 51.4941, lng: -0.1737}},
-  {name: "Southall", coords: {lat: 51.5054, lng: -0.3780}},
-]
+  { name: "Hammersmith", coords: { lat: 51.492268, lng: -0.222749 } },
+  { name: "Barons Court", coords: { lat: 51.4902, lng: -0.2137 } },
+  { name: "West Kensington", coords: { lat: 51.4902, lng: -0.2137 } },
+  { name: "Earls Court", coords: { lat: 51.4912, lng: -0.1931 } },
+  { name: "Gloucester Road", coords: { lat: 51.4941, lng: -0.1829 } },
+  { name: "South Kensington", coords: { lat: 51.4941, lng: -0.1737 } },
+  { name: "Southall", coords: { lat: 51.5054, lng: -0.378 } },
+];
 
 function App() {
-  const [cookies, setCookie] = useCookies(["location"]);
+  const [cookies, setCookie] = useCookies(["location", "lat", "long"]);
   const [libraries] = useState(["places"]);
 
   const { isLoaded } = useJsApiLoader({
@@ -63,12 +63,20 @@ function App() {
     return <SkeletonText />;
   }
 
+  async function openFilterBox() {
+    console.log("placeholder text");
+  }
+
   async function placeMarker() {
     let address = originRef.current.value;
     var geocoder = new google.maps.Geocoder();
     await geocoder.geocode({ address: address }, async function (results, status) {
       if (status == google.maps.GeocoderStatus.OK) {
         const coord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
+        //will store text location, lat, long all as strings
+        setCookie("location", originRef.current.value, { path: "/" });
+        setCookie("lat", coord.lat, { path: "/" });
+        setCookie("long", coord.lng, { path: "/" });
         if (drawMarker) {
           addMarker(coord);
           getTime(address);
@@ -143,6 +151,15 @@ function App() {
             }}
             onLoad={(map) => setMap(map)}
           >
+            console.log(cookies);
+            {
+              <Marker
+                position={{
+                  lat: Number(cookies.lat),
+                  lng: Number(cookies.long),
+                }}
+              />
+            }
             {markers
               ? markers.map((marker) => {
                   return (
@@ -155,7 +172,6 @@ function App() {
                   );
                 })
               : null}
-            {/* <Marker position={center} /> */}
             {directionsResponse && (
               <DirectionsRenderer directions={directionsResponse} />
             )}
@@ -184,6 +200,9 @@ function App() {
             <ButtonGroup>
               <Button colorScheme="pink" type="Place" onClick={placeMarker}>
                 Place
+              </Button>
+              <Button colorScheme="gray" type="Filter" onClick={openFilterBox}>
+                Filter
               </Button>
             </ButtonGroup>
           </HStack>
