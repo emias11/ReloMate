@@ -95,10 +95,11 @@ function App() {
             lng: results[0].geometry.location.lng(),
           };
           //will store text location, lat, long all as strings
-          if (cookies.prev != null) {
+          if (cookies.prevprev == null && cookies.prev != null) {
             setCookie("prevprev", cookies.prev, { path: "/" });
+            setCookie("prev", cookies.location, { path: "/" });
           }
-          if (cookies.location != null) {
+          if (cookies.prev == null && cookies.location != null) {
             setCookie("prev", cookies.location, { path: "/" });
           }
           setCookie("location", originRef.current.value, { path: "/" });
@@ -181,14 +182,14 @@ function App() {
   async function placePrevMarker() {
     const temp = originRef.current.value;
     originRef.current.value = cookies.prev;
-    cookies.prev = temp;
+    setCookie("prev", temp, { path: "/" });
     placeMarker();
   }
 
   async function placePrevPrevMarker() {
-    cookies.prevprev = cookies.prev;
+    setCookie("prevprev", cookies.prev, { path: "/" });
     const temp = cookies.prevprev;
-    cookies.prev = originRef.current.value;
+    setCookie("prev", originRef.current.value, { path: "/" });
     originRef.current.value = temp;
     placeMarker();
   }
