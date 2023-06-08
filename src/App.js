@@ -8,7 +8,7 @@ import {
   HStack,
   Input,
   SkeletonText,
-  Checkbox
+  Checkbox,
 } from "@chakra-ui/react";
 
 import {
@@ -19,8 +19,8 @@ import {
   DirectionsRenderer,
 } from "@react-google-maps/api";
 import { useRef, useState, React } from "react";
-import Popup from 'reactjs-popup';
-import 'reactjs-popup/dist/index.css';
+import Popup from "reactjs-popup";
+import "reactjs-popup/dist/index.css";
 import { CookiesProvider, useCookies } from "react-cookie";
 
 var commuteTime = 40 * 60; // seconds
@@ -48,7 +48,7 @@ const tubeStations = [
 ];
 
 function App() {
-  const [cookies, setCookie] = useCookies(["location", "lat", "long"]);
+  const [cookies, setCookie] = useCookies(["location", "prev", "lat", "long"]);
   const [libraries] = useState(["places"]);
 
   const { isLoaded } = useJsApiLoader({
@@ -90,21 +90,30 @@ function App() {
   async function placeMarker() {
     let address = originRef.current.value;
     var geocoder = new google.maps.Geocoder();
-    await geocoder.geocode({ address: address }, async function (results, status) {
-      if (status == google.maps.GeocoderStatus.OK) {
-        const coord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
-        //will store text location, lat, long all as strings
-        setCookie("location", originRef.current.value, { path: "/" });
-        setCookie("lat", coord.lat, { path: "/" });
-        setCookie("long", coord.lng, { path: "/" });
-        clearCircles();
-        setMarkers([]);
-        addMarker(coord);
-        getTime(address);
-      } else {
-        console.log("Geocoding failed: " + status);
+    await geocoder.geocode(
+      { address: address },
+      async function (results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          const coord = {
+            lat: results[0].geometry.location.lat(),
+            lng: results[0].geometry.location.lng(),
+          };
+          //will store text location, lat, long all as strings
+          if (cookies.location != null) {
+            setCookie("prev", cookies.location, { path: "/" });
+          }
+          setCookie("location", originRef.current.value, { path: "/" });
+          setCookie("lat", coord.lat, { path: "/" });
+          setCookie("long", coord.lng, { path: "/" });
+          clearCircles();
+          setMarkers([]);
+          addMarker(coord);
+          getTime(address);
+        } else {
+          console.log("Geocoding failed: " + status);
+        }
       }
-    });
+    );
     setCookie("location", originRef.current.value, { path: "/" });
   }
 
@@ -125,12 +134,16 @@ function App() {
               const originCoord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
               placeCircle(originCoord, avgWalkingSpeed * commuteTime);
             }
-          });
+          );
 
           for (let i = 0; i < tubeStations.length; i++) {
             const tubeStation = tubeStations[i];
             if (result.rows[0].elements[i].duration.value < commuteTime) {
-              placeCircle(tubeStation.coords, avgWalkingSpeed * (commuteTime - result.rows[0].elements[i].duration.value));
+              placeCircle(
+                tubeStation.coords,
+                avgWalkingSpeed *
+                  (commuteTime - result.rows[0].elements[i].duration.value)
+              );
             }
           }
         } else {
@@ -155,6 +168,11 @@ function App() {
 
     // Add the circle to the circles state
     setCircles((prevCircles) => [...prevCircles, circle]);
+  }
+
+  async function placePrevMarker() {
+    originRef.current.value = cookies.prev;
+    placeMarker();
   }
 
   // Clear all circles from the map
@@ -232,16 +250,16 @@ function App() {
             }
             {markers
               ? markers.map((marker) => {
-                return (
-                  <Marker
-                    key={marker.id}
-                    draggable={false}
-                    position={marker.coords}
-                    onClick={() => removeMarker(marker.id)}
-                    onDragEnd={(e) => (marker.coords = e.latLng.toJSON())}
-                  />
-                );
-              })
+                  return (
+                    <Marker
+                      key={marker.id}
+                      draggable={false}
+                      position={marker.coords}
+                      onClick={() => removeMarker(marker.id)}
+                      onDragEnd={(e) => (marker.coords = e.latLng.toJSON())}
+                    />
+                  );
+                })
               : null}
             {directionsResponse && (
               <DirectionsRenderer directions={directionsResponse} />
@@ -269,19 +287,32 @@ function App() {
             </Box>
 
             <ButtonGroup>
-              <Button colorScheme="pink" type="Place" onClick={placeMarker}>Place</Button>
-              <Popup trigger={<Button colorScheme="gray"> Filter </Button>} position={"bottom center"}>
+              <Button colorScheme="pink" type="Place" onClick={placeMarker}>
+                Place
+              </Button>
+              <Popup
+                trigger={<Button colorScheme="gray"> Filter </Button>}
+                position={"bottom center"}
+              >
                 <label>Max commute time </label>
                 <input ref={inputRef} type="number" size={1} />
                 <Button onClick={saveCommuteTime}> Enter </Button> <div></div>
-                <Checkbox /><span> Tube </span>
-                <Checkbox /><span> Walking </span> <div></div>
-                <Checkbox /><span> Cycling </span>
+                <Checkbox />
+                <span> Tube </span>
+                <Checkbox />
+                <span> Walking </span> <div></div>
+                <Checkbox />
+                <span> Cycling </span>
               </Popup>
             </ButtonGroup>
           </HStack>
           <HStack spacing={4} mt={4} justifyContent="space-between">
-            <Text>Location: {cookies.location} </Text>
+            <Text> Location: {cookies.location} </Text>
+            {cookies.prev && (
+              <Button colourScheme="white" onClick={placePrevMarker}>
+                {cookies.prev}
+              </Button>
+            )}
           </HStack>
         </Box>
       </Flex>
