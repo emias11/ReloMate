@@ -1,4 +1,4 @@
-/*global google*/
+/* global google */
 import {
   Box,
   Text,
@@ -70,53 +70,44 @@ function App() {
   async function placeMarker() {
     let address = originRef.current.value;
     var geocoder = new google.maps.Geocoder();
-    await geocoder.geocode(
-      { address: address },
-      async function (results, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
-          const coord = {
-            lat: results[0].geometry.location.lat(),
-            lng: results[0].geometry.location.lng(),
-          };
-          //will store text location, lat, long all as strings
-          setCookie("location", originRef.current.value, { path: "/" });
-          setCookie("lat", coord.lat, { path: "/" });
-          setCookie("long", coord.lng, { path: "/" });
-          if (drawMarker) {
-            addMarker(coord);
-            for (let i = 0; i < tubeStations.length; i++) {
-              const tubeStation = tubeStations[i];
-              getTime(address, tubeStation.name);
-            }
-          }
-        } else {
-          console.log("Geocoding failed: " + status);
+    await geocoder.geocode({ address: address }, async function (results, status) {
+      if (status == google.maps.GeocoderStatus.OK) {
+        const coord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
+        //will store text location, lat, long all as strings
+        setCookie("location", originRef.current.value, { path: "/" });
+        setCookie("lat", coord.lat, { path: "/" });
+        setCookie("long", coord.lng, { path: "/" });
+        if (drawMarker) {
+          addMarker(coord);
+          getTime(address);
         }
+      } else {
+        console.log("Geocoding failed: " + status);
       }
-    );
+    });
+    setCookie("location", originRef.current.value, { path: "/" });
   }
 
   // Gets the time from the Google Maps API to get from the origin to the destination using public transport
-  async function getTime(origin, destination) {
-    const directionsService = new google.maps.DirectionsService();
-    await directionsService.route(
+  async function getTime(origin) {
+    const directionsService = new google.maps.DistanceMatrixService();
+    await directionsService.getDistanceMatrix(
       {
-        origin: origin,
-        destination: destination,
+        origins: [origin],
+        destinations: tubeStations.map((station) => station.coords),
         travelMode: google.maps.TravelMode.TRANSIT,
       },
       (result, status) => {
-        if (status === google.maps.DirectionsStatus.OK) {
-          console.log(destination, result.routes[0].legs[0].duration);
-          if (result.routes[0].legs[0].duration.value < commuteTime) {
-            placeCircle(
-              result.routes[0].legs[0].end_location,
-              avgWalkingSpeed *
-                (commuteTime - result.routes[0].legs[0].duration.value)
-            );
+     if (status === 'OK') {
+      // console.log(result);
+      for (let i = 0; i < tubeStations.length; i++) {
+        const tubeStation = tubeStations[i];
+          if (result.rows[0].elements[i].duration.value < commuteTime) {
+            placeCircle(tubeStation.coords, avgWalkingSpeed * (commuteTime - result.rows[0].elements[i].duration.value));
           }
-        } else {
-          console.error(`error fetching directions ${result}`);
+        }
+      } else {
+        console.error(`error fetching directions ${result}`);
         }
       }
     );
