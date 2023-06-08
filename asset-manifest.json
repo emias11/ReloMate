@@ -1,10 +1,10 @@
 {
   "files": {
-    "main.js": "/ReloMate/static/js/main.f9395c17.js",
+    "main.js": "/ReloMate/static/js/main.964879cb.js",
     "index.html": "/ReloMate/index.html",
-    "main.f9395c17.js.map": "/ReloMate/static/js/main.f9395c17.js.map"
+    "main.964879cb.js.map": "/ReloMate/static/js/main.964879cb.js.map"
   },
   "entrypoints": [
-    "static/js/main.f9395c17.js"
+    "static/js/main.964879cb.js"
   ]
 }
