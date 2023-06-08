@@ -63,6 +63,10 @@ function App() {
     return <SkeletonText />;
   }
 
+  async function openFilterBox() {
+    console.log("placeholder text");
+  }
+
   async function placeMarker() {
     let address = originRef.current.value;
     var geocoder = new google.maps.Geocoder();
