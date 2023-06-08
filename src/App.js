@@ -15,12 +15,14 @@ import {
   Marker,
   Autocomplete,
   DirectionsRenderer,
+  Circle
 } from "@react-google-maps/api";
 import { useRef, useState } from "react";
 
 import { CookiesProvider, useCookies } from "react-cookie";
 
 const center = { lat: 51.4988, lng: -0.181718 };
+const walkingSpeed = 1;
 
 function App() {
   const [cookies, setCookie] = useCookies(["location"]);
@@ -33,6 +35,8 @@ function App() {
 
   const [map, setMap] = useState(/** @type google.maps.Map */ null);
   const [directionsResponse, setDirectionsResponse] = useState(null);
+  const [distance, setDistance] = useState('')
+  const [duration, setDuration] = useState('')
 
   //for markers
   const [id, setId] = useState(0);
@@ -65,6 +69,44 @@ function App() {
     //     console.log("Geocoding failed: " + status);
     //   }
     // });
+  }
+
+  // async function calculateRoute() {
+  //   if (originRef.current.value === '' || destiantionRef.current.value === '') {
+  //     return
+  //   }
+  //   // eslint-disable-next-line no-undef
+  //   const directionsService = new google.maps.DirectionsService()
+  //   const results = await directionsService.route({
+  //     origin: originRef.current.value,
+  //     destination: originRef.current.value,
+  //     // eslint-disable-next-line no-undef
+  //     travelMode: google.maps.TravelMode.TRANSIT,
+  //   })
+  //   setDirectionsResponse(results)
+  //   setDistance(results.routes[0].legs[0].distance.text)
+  //   setDuration(results.routes[0].legs[0].duration.text)
+  // }
+
+  function calcCircleRadiusDistance() {
+    //1 meter per second walking speed.
+    //Change time in seconds with filter button slider.
+    let distance = walkingSpeed * 2100
+    return distance
+  }
+
+  const options = {
+    strokeColor: '#FCF55F',
+    strokeOpacity: 0.8,
+    strokeWeight: 2,
+    fillColor: '#FFFAA0',
+    fillOpacity: 0.35,
+    clickable: false,
+    draggable: false,
+    editable: false,
+    visible: true,
+    radius: calcCircleRadiusDistance(),
+    zIndex: 1
   }
 
   return (
@@ -107,6 +149,10 @@ function App() {
             {directionsResponse && (
               <DirectionsRenderer directions={directionsResponse} />
             )}
+            <Circle
+              center={center}
+              options={options}
+            />
           </GoogleMap>
         </Box>
         <Box
