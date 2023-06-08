@@ -20,6 +20,8 @@ import { useRef, useState } from "react";
 
 import { CookiesProvider, useCookies } from "react-cookie";
 
+const commuteTime = 40*60; // seconds
+const avgWalkingSpeed = 1; // m/s
 const center = { lat: 51.4988, lng: -0.181718 };
 const tubeStations = [
   {name: "Hammersmith", coords: {lat: 51.492268, lng: -0.222749}},
@@ -63,15 +65,14 @@ function App() {
   async function placeMarker() {
     // let address = originRef.current.value;
     // var geocoder = new google.maps.Geocoder();
-    // await geocoder.geocode({ address: address }, function (results, status) {
+    // await geocoder.geocode({ address: address }, async function (results, status) {
     //   if (status == google.maps.GeocoderStatus.OK) {
     //     const coord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
     //     if (drawMarker) {
     //       addMarker(coord);
     //       for (let i = 0; i < tubeStations.length; i++) {
     //         const tubeStation = tubeStations[i];
-    //         console.log(tubeStation.name);
-    //         addMarker(tubeStation.coords);
+    //         getTime(address, tubeStation.name);
     //       }
     //     }
     //   } else {
@@ -79,7 +80,6 @@ function App() {
     //   }
     // });
     // setCookie("location", originRef.current.value, { path: "/" });
-    // console.log(getTime("Hammersmith", "Southall"));
   }
 
   // Gets the time from the Google Maps API to get from the origin to the destination using public transport
@@ -93,12 +93,29 @@ function App() {
     //   },
     //   (result, status) => {
     //     if (status === google.maps.DirectionsStatus.OK) {
-    //       return result.routes[0].legs[0].duration;
+    //       console.log(destination, result.routes[0].legs[0].duration);
+    //       if (result.routes[0].legs[0].duration.value < commuteTime) {
+    //         placeCircle(result.routes[0].legs[0].end_location, avgWalkingSpeed * (commuteTime - result.routes[0].legs[0].duration.value));
+    //       }
     //     } else {
     //       console.error(`error fetching directions ${result}`);
     //     }
     //   }
     // );
+  }
+
+  // Places a circle on the map with the given center and radius
+  async function placeCircle(center, radius) {
+    // const circle = new google.maps.Circle({
+    //   strokeColor: "#FF0000",
+    //   strokeOpacity: 0.8,
+    //   strokeWeight: 0,
+    //   fillColor: "#FF0000",
+    //   fillOpacity: 0.35,
+    //   map,
+    //   center: center,
+    //   radius: radius,
+    // });
   }
 
   return (
