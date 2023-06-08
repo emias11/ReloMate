@@ -106,11 +106,13 @@ function App() {
             lng: results[0].geometry.location.lng(),
           };
           //will store text location, lat, long all as strings
-          if (cookies.prevprev == null && cookies.prev != null) {
+          if (cookies.prevprev != null && cookies.prev != null) {
+            setCookie("prevprev", cookies.prev, { path: "/" });
+            setCookie("prev", cookies.location, { path: " / " });
+          } else if (cookies.prevprev == null && cookies.prev != null) {
             setCookie("prevprev", cookies.prev, { path: "/" });
             setCookie("prev", cookies.location, { path: "/" });
-          }
-          if (cookies.prev == null && cookies.location != null) {
+          } else if (cookies.prev == null && cookies.location != null) {
             setCookie("prev", cookies.location, { path: "/" });
           }
           setCookie("location", originRef.current.value, { path: "/" });
@@ -138,14 +140,20 @@ function App() {
         travelMode: google.maps.TravelMode.TRANSIT,
       },
       (result, status) => {
-        if (status === 'OK') {
+        if (status === "OK") {
           var geocoder = new google.maps.Geocoder();
-          geocoder.geocode({ address: origin }, async function (results, status) {
-            if (status == google.maps.GeocoderStatus.OK) {
-              const originCoord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
-              placeCircle(originCoord, avgWalkingSpeed * commuteTime);
+          geocoder.geocode(
+            { address: origin },
+            async function (results, status) {
+              if (status == google.maps.GeocoderStatus.OK) {
+                const originCoord = {
+                  lat: results[0].geometry.location.lat(),
+                  lng: results[0].geometry.location.lng(),
+                };
+                placeCircle(originCoord, avgWalkingSpeed * commuteTime);
+              }
             }
-        });
+          );
 
           for (let i = 0; i < tubeStations.length; i++) {
             const tubeStation = tubeStations[i];
@@ -207,6 +215,15 @@ function App() {
 
   async function onMapClick(coord) {
     //will store text location, lat, long all as strings
+    if (cookies.prevprev != null && cookies.prev != null) {
+      setCookie("prevprev", cookies.prev, { path: "/" });
+      setCookie("prev", cookies.location, { path: " / " });
+    } else if (cookies.prevprev == null && cookies.prev != null) {
+      setCookie("prevprev", cookies.prev, { path: "/" });
+      setCookie("prev", cookies.location, { path: "/" });
+    } else if (cookies.prev == null && cookies.location != null) {
+      setCookie("prev", cookies.location, { path: "/" });
+    }
     setCookie("location", coord.lat + " " + coord.lng, { path: "/" });
     setCookie("lat", coord.lat, { path: "/" });
     setCookie("long", coord.lng, { path: "/" });
@@ -221,12 +238,16 @@ function App() {
         travelMode: google.maps.TravelMode.TRANSIT,
       },
       (result, status) => {
-        if (status === 'OK') {
+        if (status === "OK") {
           placeCircle(coord, avgWalkingSpeed * commuteTime);
           for (let i = 0; i < tubeStations.length; i++) {
             const tubeStation = tubeStations[i];
             if (result.rows[0].elements[i].duration.value < commuteTime) {
-              placeCircle(tubeStation.coords, avgWalkingSpeed * (commuteTime - result.rows[0].elements[i].duration.value));
+              placeCircle(
+                tubeStation.coords,
+                avgWalkingSpeed *
+                  (commuteTime - result.rows[0].elements[i].duration.value)
+              );
             }
           }
         } else {
@@ -248,7 +269,7 @@ function App() {
         <Box position="absolute" left={0} top={0} h="100%" w="100%">
           {/* Google Map Box */}
           <GoogleMap
-            onClick={(e) => (onMapClick(e.latLng.toJSON()))}
+            onClick={(e) => onMapClick(e.latLng.toJSON())}
             center={center}
             zoom={12}
             mapContainerStyle={{ width: "100%", height: "100%" }}
