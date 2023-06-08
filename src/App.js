@@ -52,7 +52,6 @@ function App() {
   //for markers
   const [id, setId] = useState(0);
   const [markers, setMarkers] = useState([]);
-  const [drawMarker, setDrawMarker] = useState(true);
 
   const addMarker = (coords) => {
     setId((id) => id + 1);
@@ -80,11 +79,9 @@ function App() {
         setCookie("location", originRef.current.value, { path: "/" });
         setCookie("lat", coord.lat, { path: "/" });
         setCookie("long", coord.lng, { path: "/" });
-        if (drawMarker) {
-          clearCircles();
-          addMarker(coord);
-          getTime(address);
-        }
+        clearCircles();
+        addMarker(coord);
+        getTime(address);
       } else {
         console.log("Geocoding failed: " + status);
       }
@@ -173,7 +170,7 @@ function App() {
         <Box position="absolute" left={0} top={0} h="100%" w="100%">
           {/* Google Map Box */}
           <GoogleMap
-            onClick={(e) => (drawMarker ? addMarker(e.latLng.toJSON()) : null)}
+            onClick={(e) => (addMarker(e.latLng.toJSON()))}
             center={center}
             zoom={12}
             mapContainerStyle={{ width: "100%", height: "100%" }}
@@ -199,7 +196,7 @@ function App() {
                   return (
                     <Marker
                       key={marker.id}
-                      draggable={drawMarker}
+                      draggable={false}
                       position={marker.coords}
                       onDragEnd={(e) => (marker.coords = e.latLng.toJSON())}
                     />
