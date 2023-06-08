@@ -29,11 +29,22 @@ const center = { lat: 51.4988, lng: -0.181718 };
 const tubeStations = [
   { name: "Hammersmith", coords: { lat: 51.492268, lng: -0.222749 } },
   { name: "Barons Court", coords: { lat: 51.4902, lng: -0.2137 } },
-  { name: "West Kensington", coords: { lat: 51.4902, lng: -0.2137 } },
   { name: "Earls Court", coords: { lat: 51.4912, lng: -0.1931 } },
   { name: "Gloucester Road", coords: { lat: 51.4941, lng: -0.1829 } },
   { name: "South Kensington", coords: { lat: 51.4941, lng: -0.1737 } },
   { name: "Southall", coords: { lat: 51.5054, lng: -0.378 } },
+  { name: "Notting Hill Gate", coords: { lat: 51.5091, lng: -0.1961 } },
+  { name: "Embankment", coords: { lat: 51.5073, lng: -0.1223 } },
+  { name: "Westminster", coords: { lat: 51.501, lng: -0.1247 } },
+  { name: "Mile End", coords: { lat: 51.5255, lng: -0.0335 } },
+  { name: "Liverpool Street", coords: { lat: 51.5178, lng: -0.0825 } },
+  { name: "King's Cross St. Pancras", coords: { lat: 51.5308, lng: -0.1233 } },
+  { name: "Euston", coords: { lat: 51.5281, lng: -0.1336 } },
+  { name: "Ealing Broadway", coords: { lat: 51.5142, lng: -0.3012 } },
+  { name: "Waterloo", coords: { lat: 51.5036, lng: -0.1143 } },
+  { name: "Stratford", coords: { lat: 51.5416, lng: -0.0034 } },
+  { name: "Goodmayes", coords: { lat: 51.5655, lng: 0.1101 } },
+  { name: "Putney Bridge", coords: { lat: 51.4686, lng: -0.2081 } },
 ];
 
 function App() {
@@ -116,21 +127,12 @@ function App() {
         travelMode: google.maps.TravelMode.TRANSIT,
       },
       (result, status) => {
-        if (status === "OK") {
-          console.log(result);
-          console.log(origin);
-          let address = originRef.current.value;
+        if (status === 'OK') {
           var geocoder = new google.maps.Geocoder();
-          geocoder.geocode(
-            { address: address },
-            async function (results, status) {
-              if (status == google.maps.GeocoderStatus.OK) {
-                const originCoord = {
-                  lat: results[0].geometry.location.lat(),
-                  lng: results[0].geometry.location.lng(),
-                };
-                placeCircle(originCoord, avgWalkingSpeed * commuteTime);
-              }
+          geocoder.geocode({ address: origin }, async function (results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+              const originCoord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
+              placeCircle(originCoord, avgWalkingSpeed * commuteTime);
             }
           );
 
@@ -182,6 +184,37 @@ function App() {
     setCircles([]);
   }
 
+  async function onMapClick(coord) {
+    //will store text location, lat, long all as strings
+    setCookie("location", coord.lat + " " + coord.lng, { path: "/" });
+    setCookie("lat", coord.lat, { path: "/" });
+    setCookie("long", coord.lng, { path: "/" });
+    clearCircles();
+    setMarkers([]);
+    addMarker(coord);
+    const directionsService = new google.maps.DistanceMatrixService();
+    await directionsService.getDistanceMatrix(
+      {
+        origins: [coord],
+        destinations: tubeStations.map((station) => station.coords),
+        travelMode: google.maps.TravelMode.TRANSIT,
+      },
+      (result, status) => {
+        if (status === 'OK') {
+          placeCircle(coord, avgWalkingSpeed * commuteTime);
+          for (let i = 0; i < tubeStations.length; i++) {
+            const tubeStation = tubeStations[i];
+            if (result.rows[0].elements[i].duration.value < commuteTime) {
+              placeCircle(tubeStation.coords, avgWalkingSpeed * (commuteTime - result.rows[0].elements[i].duration.value));
+            }
+          }
+        } else {
+          console.error(`error fetching directions ${result}`);
+        }
+      }
+    );
+  }
+
   return (
     <CookiesProvider>
       <Flex
@@ -194,7 +227,7 @@ function App() {
         <Box position="absolute" left={0} top={0} h="100%" w="100%">
           {/* Google Map Box */}
           <GoogleMap
-            onClick={(e) => addMarker(e.latLng.toJSON())}
+            onClick={(e) => (onMapClick(e.latLng.toJSON()))}
             center={center}
             zoom={12}
             mapContainerStyle={{ width: "100%", height: "100%" }}
