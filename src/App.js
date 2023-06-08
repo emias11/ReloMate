@@ -80,6 +80,7 @@ function App() {
         setCookie("lat", coord.lat, { path: "/" });
         setCookie("long", coord.lng, { path: "/" });
         clearCircles();
+        setMarkers([]);
         addMarker(coord);
         getTime(address);
       } else {
