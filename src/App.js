@@ -134,7 +134,7 @@ function App() {
               const originCoord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
               placeCircle(originCoord, avgWalkingSpeed * commuteTime);
             }
-          );
+        });
 
           for (let i = 0; i < tubeStations.length; i++) {
             const tubeStation = tubeStations[i];
