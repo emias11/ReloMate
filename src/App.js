@@ -18,7 +18,7 @@ import {
   Autocomplete,
   DirectionsRenderer,
 } from "@react-google-maps/api";
-import { useRef, useState, React} from "react";
+import { useRef, useState, React } from "react";
 import Popup from 'reactjs-popup';
 import 'reactjs-popup/dist/index.css';
 import { CookiesProvider, useCookies } from "react-cookie";
@@ -68,8 +68,12 @@ function App() {
     return <SkeletonText />;
   }
 
-  function saveCommuteTime() {
-    commuteTime = inputRef.current.value;
+  async function saveCommuteTime() {
+    commuteTime = inputRef.current.value * 60;
+  }
+
+  async function removeMarker(id) {
+    setMarkers((markers) => markers.filter((marker) => marker.id !== id));
   }
 
   async function placeMarker() {
@@ -103,26 +107,26 @@ function App() {
         travelMode: google.maps.TravelMode.TRANSIT,
       },
       (result, status) => {
-     if (status === 'OK') { 
-      console.log(result);
-      console.log(origin);
-      let address = originRef.current.value;
-      var geocoder = new google.maps.Geocoder();
-      geocoder.geocode({ address: address }, async function (results, status) {
-        if (status == google.maps.GeocoderStatus.OK) {
-          const originCoord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
-          placeCircle(originCoord, avgWalkingSpeed * commuteTime);
-        }
-      });
-  
-      for (let i = 0; i < tubeStations.length; i++) {
-        const tubeStation = tubeStations[i];
-          if (result.rows[0].elements[i].duration.value < commuteTime) {
-            placeCircle(tubeStation.coords, avgWalkingSpeed * (commuteTime - result.rows[0].elements[i].duration.value));
+        if (status === 'OK') {
+          console.log(result);
+          console.log(origin);
+          let address = originRef.current.value;
+          var geocoder = new google.maps.Geocoder();
+          geocoder.geocode({ address: address }, async function (results, status) {
+            if (status == google.maps.GeocoderStatus.OK) {
+              const originCoord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
+              placeCircle(originCoord, avgWalkingSpeed * commuteTime);
+            }
+          });
+
+          for (let i = 0; i < tubeStations.length; i++) {
+            const tubeStation = tubeStations[i];
+            if (result.rows[0].elements[i].duration.value < commuteTime) {
+              placeCircle(tubeStation.coords, avgWalkingSpeed * (commuteTime - result.rows[0].elements[i].duration.value));
+            }
           }
-        }
-      } else {
-        console.error(`error fetching directions ${result}`);
+        } else {
+          console.error(`error fetching directions ${result}`);
         }
       }
     );
@@ -189,15 +193,16 @@ function App() {
             }
             {markers
               ? markers.map((marker) => {
-                  return (
-                    <Marker
-                      key={marker.id}
-                      draggable={false}
-                      position={marker.coords}
-                      onDragEnd={(e) => (marker.coords = e.latLng.toJSON())}
-                    />
-                  );
-                })
+                return (
+                  <Marker
+                    key={marker.id}
+                    draggable={false}
+                    position={marker.coords}
+                    onClick={() => removeMarker(marker.id)}
+                    onDragEnd={(e) => (marker.coords = e.latLng.toJSON())}
+                  />
+                );
+              })
               : null}
             {directionsResponse && (
               <DirectionsRenderer directions={directionsResponse} />
@@ -226,14 +231,14 @@ function App() {
 
             <ButtonGroup>
               <Button colorScheme="pink" type="Place" onClick={placeMarker}>Place</Button>
-            <Popup trigger={<Button colorScheme="gray"> Filter </Button>} position={"bottom center"}>
-              <label>Max commute time </label>
-              <input ref={inputRef} type="number" size={1} />
-              <Button onClick={saveCommuteTime}> Enter </Button> <div></div>
-              <Checkbox /><span> Tube </span>
-              <Checkbox /><span> Walking </span> <div></div>
-              <Checkbox /><span> Cycling </span>
-            </Popup>
+              <Popup trigger={<Button colorScheme="gray"> Filter </Button>} position={"bottom center"}>
+                <label>Max commute time </label>
+                <input ref={inputRef} type="number" size={1} />
+                <Button onClick={saveCommuteTime}> Enter </Button> <div></div>
+                <Checkbox /><span> Tube </span>
+                <Checkbox /><span> Walking </span> <div></div>
+                <Checkbox /><span> Cycling </span>
+              </Popup>
             </ButtonGroup>
           </HStack>
           <HStack spacing={4} mt={4} justifyContent="space-between">
