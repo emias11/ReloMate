@@ -9,6 +9,7 @@ import {
   Input,
   SkeletonText,
   Checkbox,
+  Stack,
 } from "@chakra-ui/react";
 
 import {
@@ -37,7 +38,13 @@ const tubeStations = [
 ];
 
 function App() {
-  const [cookies, setCookie] = useCookies(["location", "prev", "lat", "long"]);
+  const [cookies, setCookie] = useCookies([
+    "location",
+    "prev",
+    "prevprev",
+    "lat",
+    "long",
+  ]);
   const [libraries] = useState(["places"]);
 
   const { isLoaded } = useJsApiLoader({
@@ -88,6 +95,9 @@ function App() {
             lng: results[0].geometry.location.lng(),
           };
           //will store text location, lat, long all as strings
+          if (cookies.prev != null) {
+            setCookie("prevprev", cookies.prev, { path: "/" });
+          }
           if (cookies.location != null) {
             setCookie("prev", cookies.location, { path: "/" });
           }
@@ -169,7 +179,17 @@ function App() {
   }
 
   async function placePrevMarker() {
+    const temp = originRef.current.value;
     originRef.current.value = cookies.prev;
+    cookies.prev = temp;
+    placeMarker();
+  }
+
+  async function placePrevPrevMarker() {
+    cookies.prevprev = cookies.prev;
+    const temp = cookies.prevprev;
+    cookies.prev = originRef.current.value;
+    originRef.current.value = temp;
     placeMarker();
   }
 
@@ -274,12 +294,36 @@ function App() {
             </ButtonGroup>
           </HStack>
           <HStack spacing={4} mt={4} justifyContent="space-between">
-            <Text> Location: {cookies.location} </Text>
-            {cookies.prev && (
-              <Button colourScheme="white" onClick={placePrevMarker}>
-                {cookies.prev}
-              </Button>
-            )}
+            <Stack direction={["column"]} spacing="7px">
+              <Text> Location: {cookies.location} </Text>
+              {cookies.prev && (
+                <Text fontSize="14px" color="grey">
+                  Previous searches:
+                </Text>
+              )}
+              {cookies.prev && (
+                <Stack direction={["row"]} spacing="5px">
+                  <Button
+                    size="xs"
+                    colorScheme="pink"
+                    variant="outline"
+                    onClick={placePrevMarker}
+                  >
+                    {cookies.prev}
+                  </Button>
+                  {cookies.prevprev && (
+                    <Button
+                      size="xs"
+                      colorScheme="pink"
+                      variant="outline"
+                      onClick={placePrevPrevMarker}
+                    >
+                      {cookies.prevprev}
+                    </Button>
+                  )}
+                </Stack>
+              )}
+            </Stack>
           </HStack>
         </Box>
       </Flex>
