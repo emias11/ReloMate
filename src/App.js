@@ -46,6 +46,9 @@ function App() {
   const [map, setMap] = useState(/** @type google.maps.Map */ null);
   const [directionsResponse, setDirectionsResponse] = useState(null);
 
+  // Track the circles added to the map
+  const [circles, setCircles] = useState([]);
+
   //for markers
   const [id, setId] = useState(0);
   const [markers, setMarkers] = useState([]);
@@ -78,6 +81,7 @@ function App() {
         setCookie("lat", coord.lat, { path: "/" });
         setCookie("long", coord.lng, { path: "/" });
         if (drawMarker) {
+          clearCircles();
           addMarker(coord);
           getTime(address);
         }
@@ -98,8 +102,18 @@ function App() {
         travelMode: google.maps.TravelMode.TRANSIT,
       },
       (result, status) => {
-     if (status === 'OK') {
-      // console.log(result);
+     if (status === 'OK') { 
+      console.log(result);
+      console.log(origin);
+      let address = originRef.current.value;
+      var geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ address: address }, async function (results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          const originCoord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
+          placeCircle(originCoord, avgWalkingSpeed * commuteTime);
+        }
+      });
+  
       for (let i = 0; i < tubeStations.length; i++) {
         const tubeStation = tubeStations[i];
           if (result.rows[0].elements[i].duration.value < commuteTime) {
@@ -125,7 +139,27 @@ function App() {
       center: center,
       radius: radius,
     });
+
+    // Add the circle to the circles state
+    setCircles((prevCircles) => [...prevCircles, circle]);
   }
+
+  // Clear all circles from the map
+  function clearCircles() {
+    // Remove each circle from the map
+    circles.forEach((circle) => circle.setMap(null));
+
+    // Clear the circles state
+    setCircles([]);
+  }
+
+  // function calcCircleRadiusDistance() {
+  //   //1 meter per second walking speed.
+  //   //Change time in seconds with filter button slider.
+  //   let distance = avgWalkingSpeed * 2100
+  //   return distance
+  // }
+
 
   return (
     <CookiesProvider>
