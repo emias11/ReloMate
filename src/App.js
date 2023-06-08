@@ -51,10 +51,10 @@ function App() {
     return <SkeletonText />;
   }
 
-  async function placeMarker() {
-    drawMarker ? addMarker(center) : null;
-    setCookie("location", originRef.current.value, { path: "/" });
-  }
+  const placeMarker = () => (
+    drawMarker ? addMarker(center) : null,
+    setCookie("location", originRef.current.value, { path: "/" })
+  );
 
   function getLatLong(address) {
     // var geocoder = new google.maps.Geocoder();
