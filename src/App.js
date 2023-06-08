@@ -108,11 +108,8 @@ function App() {
       },
       (result, status) => {
         if (status === 'OK') {
-          console.log(result);
-          console.log(origin);
-          let address = originRef.current.value;
           var geocoder = new google.maps.Geocoder();
-          geocoder.geocode({ address: address }, async function (results, status) {
+          geocoder.geocode({ address: origin }, async function (results, status) {
             if (status == google.maps.GeocoderStatus.OK) {
               const originCoord = { lat: results[0].geometry.location.lat(), lng: results[0].geometry.location.lng() };
               placeCircle(originCoord, avgWalkingSpeed * commuteTime);
@@ -158,6 +155,37 @@ function App() {
     setCircles([]);
   }
 
+  async function onMapClick(coord) {
+    //will store text location, lat, long all as strings
+    setCookie("location", coord.lat + " " + coord.lng, { path: "/" });
+    setCookie("lat", coord.lat, { path: "/" });
+    setCookie("long", coord.lng, { path: "/" });
+    clearCircles();
+    setMarkers([]);
+    addMarker(coord);
+    const directionsService = new google.maps.DistanceMatrixService();
+    await directionsService.getDistanceMatrix(
+      {
+        origins: [coord],
+        destinations: tubeStations.map((station) => station.coords),
+        travelMode: google.maps.TravelMode.TRANSIT,
+      },
+      (result, status) => {
+        if (status === 'OK') {
+          placeCircle(coord, avgWalkingSpeed * commuteTime);
+          for (let i = 0; i < tubeStations.length; i++) {
+            const tubeStation = tubeStations[i];
+            if (result.rows[0].elements[i].duration.value < commuteTime) {
+              placeCircle(tubeStation.coords, avgWalkingSpeed * (commuteTime - result.rows[0].elements[i].duration.value));
+            }
+          }
+        } else {
+          console.error(`error fetching directions ${result}`);
+        }
+      }
+    );
+  }
+
   return (
     <CookiesProvider>
       <Flex
@@ -170,7 +198,7 @@ function App() {
         <Box position="absolute" left={0} top={0} h="100%" w="100%">
           {/* Google Map Box */}
           <GoogleMap
-            onClick={(e) => (addMarker(e.latLng.toJSON()))}
+            onClick={(e) => (onMapClick(e.latLng.toJSON()))}
             center={center}
             zoom={12}
             mapContainerStyle={{ width: "100%", height: "100%" }}
