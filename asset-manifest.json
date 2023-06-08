@@ -1,10 +1,13 @@
 {
   "files": {
-    "main.js": "/ReloMate/static/js/main.76a728c9.js",
+    "main.css": "/ReloMate/static/css/main.2517ad09.css",
+    "main.js": "/ReloMate/static/js/main.77848549.js",
     "index.html": "/ReloMate/index.html",
-    "main.76a728c9.js.map": "/ReloMate/static/js/main.76a728c9.js.map"
+    "main.2517ad09.css.map": "/ReloMate/static/css/main.2517ad09.css.map",
+    "main.77848549.js.map": "/ReloMate/static/js/main.77848549.js.map"
   },
   "entrypoints": [
-    "static/js/main.76a728c9.js"
+    "static/css/main.2517ad09.css",
+    "static/js/main.77848549.js"
   ]
 }
