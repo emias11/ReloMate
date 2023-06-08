@@ -35,8 +35,10 @@ function App() {
 
   const [map, setMap] = useState(/** @type google.maps.Map */ null);
   const [directionsResponse, setDirectionsResponse] = useState(null);
-  const [distance, setDistance] = useState('')
-  const [duration, setDuration] = useState('')
+
+  //for directions
+  const [transitTime, setTransitTime] = useState('');
+  const [distance, setDistance] = useState('');
 
   //for markers
   const [id, setId] = useState(0);
@@ -71,22 +73,27 @@ function App() {
     // });
   }
 
-  // async function calculateRoute() {
-  //   if (originRef.current.value === '' || destiantionRef.current.value === '') {
-  //     return
-  //   }
-  //   // eslint-disable-next-line no-undef
-  //   const directionsService = new google.maps.DirectionsService()
-  //   const results = await directionsService.route({
-  //     origin: originRef.current.value,
-  //     destination: originRef.current.value,
-  //     // eslint-disable-next-line no-undef
-  //     travelMode: google.maps.TravelMode.TRANSIT,
-  //   })
-  //   setDirectionsResponse(results)
-  //   setDistance(results.routes[0].legs[0].distance.text)
-  //   setDuration(results.routes[0].legs[0].duration.text)
-  // }
+  function calcRoute() {
+    const service = new google.maps.DistanceMatrixService();
+    const GloucesterRoad = { lat: 51.4948, lng: -0.1827 };
+    const EarlsCourt = { lat: 51.4920, lng: -0.1930 };
+    const request = {
+      origins: [GloucesterRoad],
+      destinations: [EarlsCourt],
+      travelMode: google.maps.TravelMode.TRANSIT,
+      unitSystem: google.maps.UnitSystem.METRIC,
+    };
+
+    service.getDistanceMatrix(request, (response, status) => {
+      if (status === "OK") {
+        console.log(response);
+        setTransitTime(response.rows[0].elements[0].duration.text);
+        setDistance(response.rows[0].elements[0].distance.text);
+      }
+    }
+    );
+  }
+
 
   function calcCircleRadiusDistance() {
     //1 meter per second walking speed.
@@ -149,10 +156,13 @@ function App() {
             {directionsResponse && (
               <DirectionsRenderer directions={directionsResponse} />
             )}
+            {transitTime && (
             <Circle
               center={center}
               options={options}
             />
+            )}
+            
           </GoogleMap>
         </Box>
         <Box
@@ -176,13 +186,15 @@ function App() {
             </Box>
 
             <ButtonGroup>
-              <Button colorScheme="pink" type="Place" onClick={placeMarker}>
+              <Button colorScheme="pink" type="Place" onClick={calcRoute}>
                 Place
               </Button>
             </ButtonGroup>
           </HStack>
           <HStack spacing={4} mt={4} justifyContent="space-between">
             <Text>Location: {cookies.location} </Text>
+            <Text>Distance: {distance} </Text>
+            <Text>Duration: {transitTime} </Text>
           </HStack>
         </Box>
       </Flex>
