@@ -88,7 +88,9 @@ function App() {
             lng: results[0].geometry.location.lng(),
           };
           //will store text location, lat, long all as strings
-          setCookie("prev", cookies.location, { path: "/" });
+          if (cookies.location != null) {
+            setCookie("prev", cookies.location, { path: "/" });
+          }
           setCookie("location", originRef.current.value, { path: "/" });
           setCookie("lat", coord.lat, { path: "/" });
           setCookie("long", coord.lng, { path: "/" });
@@ -273,9 +275,11 @@ function App() {
           </HStack>
           <HStack spacing={4} mt={4} justifyContent="space-between">
             <Text> Location: {cookies.location} </Text>
-            <Button colourScheme="white" onClick={placePrevMarker}>
-              {cookies.prev}
-            </Button>
+            {cookies.prev && (
+              <Button colourScheme="white" onClick={placePrevMarker}>
+                {cookies.prev}
+              </Button>
+            )}
           </HStack>
         </Box>
       </Flex>
