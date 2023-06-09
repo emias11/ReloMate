@@ -94,6 +94,32 @@ function App() {
     setMarkers((markers) => markers.filter((marker) => marker.id !== id));
   }
 
+  async function placeMarkerWithHistory() {
+    let address = originRef.current.value;
+    var geocoder = new google.maps.Geocoder();
+    await geocoder.geocode(
+      { address: address },
+      async function (results, status) {
+        if (status == google.maps.GeocoderStatus.OK) {
+          const coord = {
+            lat: results[0].geometry.location.lat(),
+            lng: results[0].geometry.location.lng(),
+          };
+          setCookie("location", originRef.current.value, { path: "/" });
+          setCookie("lat", coord.lat, { path: "/" });
+          setCookie("long", coord.lng, { path: "/" });
+          clearCircles();
+          setMarkers([]);
+          addMarker(coord);
+          getTime(address);
+        } else {
+          console.log("Geocoding failed: " + status);
+        }
+      }
+    );
+    setCookie("location", originRef.current.value, { path: "/" });
+  }
+
   async function placeMarker() {
     let address = originRef.current.value;
     var geocoder = new google.maps.Geocoder();
@@ -193,7 +219,7 @@ function App() {
     const temp = originRef.current.value;
     originRef.current.value = cookies.prev;
     setCookie("prev", temp, { path: "/" });
-    placeMarker();
+    placeMarkerWithHistory();
   }
 
   async function placePrevPrevMarker() {
@@ -201,7 +227,7 @@ function App() {
     const temp = cookies.prevprev;
     setCookie("prev", originRef.current.value, { path: "/" });
     originRef.current.value = temp;
-    placeMarker();
+    placeMarkerWithHistory();
   }
 
   // Clear all circles from the map
