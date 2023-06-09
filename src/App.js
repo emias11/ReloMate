@@ -237,17 +237,59 @@ function App() {
               mapTypeControl: false,
               fullscreenControl: false,
             }}
-            onLoad={(map) => setMap(map)}
-          >
-            console.log(cookies);
-            {
-              <Marker
-                position={{
-                  lat: Number(cookies.lat),
-                  lng: Number(cookies.long),
-                }}
-              />
+            onLoad={async (map) => { 
+                setMap(map); 
+                let coord = {lat: Number(cookies.lat), lng: Number(cookies.long) };
+                clearCircles();
+                setMarkers([]);
+                addMarker(coord);
+                const directionsService = new google.maps.DistanceMatrixService();
+                await directionsService.getDistanceMatrix(
+                  {
+                    origins: [coord],
+                    destinations: tubeStations.map((station) => station.coords),
+                    travelMode: google.maps.TravelMode.TRANSIT,
+                  },
+                  async (result, status) => {
+                    if (status === 'OK') {
+                      var circle = new google.maps.Circle({
+                        strokeColor: "#FF0000",
+                        strokeOpacity: 0.8,
+                        strokeWeight: 0,
+                        fillColor: "#FF0000",
+                        fillOpacity: 0.15,
+                        map,
+                        center: coord,
+                        radius: avgWalkingSpeed * commuteTime,
+                      });
+                      // Add the circle to the circles state
+                      setCircles((prevCircles) => [...prevCircles, circle]);
+                      
+                      for (let i = 0; i < tubeStations.length; i++) {
+                        const tubeStation = tubeStations[i];
+                        if (result.rows[0].elements[i].duration.value < commuteTime) {
+                          var circle = new google.maps.Circle({
+                            strokeColor: "#FF0000",
+                            strokeOpacity: 0.8,
+                            strokeWeight: 0,
+                            fillColor: "#FF0000",
+                            fillOpacity: 0.15,
+                            map,
+                            center: tubeStation.coords,
+                            radius: avgWalkingSpeed * (commuteTime - result.rows[0].elements[i].duration.value),
+                          });
+                          // Add the circle to the circles state
+                          setCircles((prevCircles) => [...prevCircles, circle]);
+                        }
+                      }
+                    } else {
+                      console.error(`error fetching directions ${result}`);
+                    }
+                  }
+                );
+              }
             }
+          >
             {markers
               ? markers.map((marker) => {
                   return (
