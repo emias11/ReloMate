@@ -189,6 +189,8 @@ function App() {
                 avgWalkingSpeed *
                   (commuteTime - result.rows[0].elements[i].duration.value)
               );
+            } else {
+              console.log("No stations in commuting distance");
             }
           }
         } else {
@@ -274,6 +276,8 @@ function App() {
                 avgWalkingSpeed *
                   (commuteTime - result.rows[0].elements[i].duration.value)
               );
+            } else {
+              console.log("No stations in commuting distance");
             }
           }
         } else {
