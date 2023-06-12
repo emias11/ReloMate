@@ -46,6 +46,13 @@ const tubeStations = [
   { name: "Stratford", coords: { lat: 51.5416, lng: -0.0034 } },
   { name: "Goodmayes", coords: { lat: 51.5655, lng: 0.1101 } },
   { name: "Putney Bridge", coords: { lat: 51.4686, lng: -0.2081 } },
+  { name: "Wembley Park", coords: { lat: 51.5632, lng: -0.2797 } },
+  { name: "Rayners Lane", coords: { lat: 51.5754, lng: -0.3712 } },
+  { name: "Gunnersbury", coords: { lat: 51.4917, lng: -0.2753 } },
+  { name: "Wimbledon", coords: { lat: 51.4213, lng: -0.2067 } },
+  { name: "Stockwell", coords: { lat: 51.4722, lng: -0.1226 } },
+  { name: "Greenwich", coords: { lat: 51.4781, lng: -0.0148 } },
+  { name: "Walthamstow Central", coords: { lat: 51.5822, lng: -0.0197 } },
 ];
 
 function App() {
