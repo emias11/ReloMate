@@ -10,6 +10,8 @@ import {
   SkeletonText,
   Checkbox,
   Stack,
+  useColorModeValue,
+  IconButton,
 } from "@chakra-ui/react";
 
 import {
@@ -19,6 +21,9 @@ import {
   Autocomplete,
   DirectionsRenderer,
 } from "@react-google-maps/api";
+
+import { RxCrossCircled } from "react-icons/rx";
+
 import { useRef, useState, React } from "react";
 import Popup from "reactjs-popup";
 import "reactjs-popup/dist/index.css";
@@ -219,7 +224,10 @@ function App() {
       center: center,
       radius: radius,
     });
-
+    // Add a listener for when the circle is clicked
+    circle.addListener("click", function () {
+      alert("Circle clicked!");
+    });
     // Add the circle to the circles state
     setCircles((prevCircles) => [...prevCircles, circle]);
   }
@@ -298,31 +306,57 @@ function App() {
     <CookiesProvider>
       <Flex
         position="relative"
-        flexDirection="column"
-        alignItems="center"
+        flexDirection="row"
+        alignItems="flex-start"
         h="100vh"
         w="100vw"
       >
-        <Box position="absolute" left={0} top={0} h="100%" w="100%">
-          {/* Google Map Box */}
-          <GoogleMap
-            onClick={(e) => onMapClick(e.latLng.toJSON())}
-            center={center}
-            zoom={12}
-            mapContainerStyle={{ width: "100%", height: "100%" }}
-            options={{
-              zoomControl: false,
-              streetViewControl: false,
-              mapTypeControl: false,
-              fullscreenControl: false,
-            }}
-            onLoad={async (map) => { 
-                setMap(map); 
-                let coord = {lat: Number(cookies.lat), lng: Number(cookies.long) };
+        <Box bg="white" w="400px" p={4} position="relative">
+          <IconButton
+            icon={<RxCrossCircled />}
+            fontSize="25px"
+            position="absolute"
+            bg="white"
+            color="#cf0083"
+            top={1}
+            right={1}
+            zIndex={1}
+            padding={"3px"}
+          ></IconButton>
+          <Text>This is the left section</Text>
+          <Text>Placeholder text</Text>
+        </Box>
+        <Flex
+          position="relative"
+          flexDirection="column"
+          alignItems="center"
+          h="100vh"
+          w="100vw"
+        >
+          <Box position="absolute" left={0} top={0} h="100%" w="100%">
+            {/* Google Map Box */}
+            <GoogleMap
+              onClick={(e) => onMapClick(e.latLng.toJSON())}
+              center={center}
+              zoom={12}
+              mapContainerStyle={{ width: "100%", height: "100%" }}
+              options={{
+                zoomControl: false,
+                streetViewControl: false,
+                mapTypeControl: false,
+                fullscreenControl: false,
+              }}
+              onLoad={async (map) => {
+                setMap(map);
+                let coord = {
+                  lat: Number(cookies.lat),
+                  lng: Number(cookies.long),
+                };
                 clearCircles();
                 setMarkers([]);
                 addMarker(coord);
-                const directionsService = new google.maps.DistanceMatrixService();
+                const directionsService =
+                  new google.maps.DistanceMatrixService();
                 await directionsService.getDistanceMatrix(
                   {
                     origins: [coord],
@@ -330,7 +364,7 @@ function App() {
                     travelMode: google.maps.TravelMode.TRANSIT,
                   },
                   async (result, status) => {
-                    if (status === 'OK') {
+                    if (status === "OK") {
                       var circle = new google.maps.Circle({
                         strokeColor: "#FF0000",
                         strokeOpacity: 0.8,
@@ -343,10 +377,13 @@ function App() {
                       });
                       // Add the circle to the circles state
                       setCircles((prevCircles) => [...prevCircles, circle]);
-                      
+
                       for (let i = 0; i < tubeStations.length; i++) {
                         const tubeStation = tubeStations[i];
-                        if (result.rows[0].elements[i].duration.value < commuteTime) {
+                        if (
+                          result.rows[0].elements[i].duration.value <
+                          commuteTime
+                        ) {
                           var circle = new google.maps.Circle({
                             strokeColor: "#FF0000",
                             strokeOpacity: 0.8,
@@ -355,7 +392,10 @@ function App() {
                             fillOpacity: 0.15,
                             map,
                             center: tubeStation.coords,
-                            radius: avgWalkingSpeed * (commuteTime - result.rows[0].elements[i].duration.value),
+                            radius:
+                              avgWalkingSpeed *
+                              (commuteTime -
+                                result.rows[0].elements[i].duration.value),
                           });
                           // Add the circle to the circles state
                           setCircles((prevCircles) => [...prevCircles, circle]);
@@ -366,100 +406,100 @@ function App() {
                     }
                   }
                 );
-              }
-            }
-          >
-            {markers
-              ? markers.map((marker) => {
-                  return (
-                    <Marker
-                      key={marker.id}
-                      draggable={false}
-                      position={marker.coords}
-                      onClick={() => removeMarker(marker.id)}
-                      onDragEnd={(e) => (marker.coords = e.latLng.toJSON())}
-                    />
-                  );
-                })
-              : null}
-            {directionsResponse && (
-              <DirectionsRenderer directions={directionsResponse} />
-            )}
-          </GoogleMap>
-        </Box>
-        <Box
-          p={4}
-          borderRadius="lg"
-          m={4}
-          bgColor="white"
-          shadow="base"
-          minW="container.md"
-          zIndex="1"
-        >
-          <HStack spacing={2} justifyContent="space-between">
-            <Box flexGrow={1}>
-              <Autocomplete>
-                <Input
-                  type="text"
-                  placeholder="Where will you be working..."
-                  ref={originRef}
-                />
-              </Autocomplete>
-            </Box>
-
-            <ButtonGroup>
-              <Button colorScheme="pink" type="Place" onClick={placeMarker}>
-                Place
-              </Button>
-              <Popup
-                trigger={<Button colorScheme="gray"> Filter </Button>}
-                position={"bottom center"}
-              >
-                <label>Max commute time </label>
-                <input ref={inputRef} type="number" size={1} />
-                <Button onClick={saveCommuteTime}> Enter </Button> <div></div>
-                <Checkbox />
-                <span> Tube </span>
-                <Checkbox />
-                <span> Walking </span> <div></div>
-                <Checkbox />
-                <span> Cycling </span>
-              </Popup>
-            </ButtonGroup>
-          </HStack>
-          <HStack spacing={4} mt={4} justifyContent="space-between">
-            <Stack direction={["column"]} spacing="7px">
-              <Text> Location: {cookies.location} </Text>
-              {cookies.prev && (
-                <Text fontSize="14px" color="grey">
-                  Previous searches:
-                </Text>
+              }}
+            >
+              {markers
+                ? markers.map((marker) => {
+                    return (
+                      <Marker
+                        key={marker.id}
+                        draggable={false}
+                        position={marker.coords}
+                        onClick={() => removeMarker(marker.id)}
+                        onDragEnd={(e) => (marker.coords = e.latLng.toJSON())}
+                      />
+                    );
+                  })
+                : null}
+              {directionsResponse && (
+                <DirectionsRenderer directions={directionsResponse} />
               )}
-              {cookies.prev && (
-                <Stack direction={["row"]} spacing="5px">
-                  <Button
-                    size="xs"
-                    colorScheme="pink"
-                    variant="outline"
-                    onClick={placePrevMarker}
-                  >
-                    {cookies.prev}
-                  </Button>
-                  {cookies.prevprev && (
+            </GoogleMap>
+          </Box>
+          <Box
+            p={4}
+            borderRadius="lg"
+            m={4}
+            bgColor="white"
+            shadow="base"
+            minW="container.md"
+            zIndex="1"
+          >
+            <HStack spacing={2} justifyContent="space-between">
+              <Box flexGrow={1}>
+                <Autocomplete>
+                  <Input
+                    type="text"
+                    placeholder="Where will you be working..."
+                    ref={originRef}
+                  />
+                </Autocomplete>
+              </Box>
+
+              <ButtonGroup>
+                <Button colorScheme="pink" type="Place" onClick={placeMarker}>
+                  Place
+                </Button>
+                <Popup
+                  trigger={<Button colorScheme="gray"> Filter </Button>}
+                  position={"bottom center"}
+                >
+                  <label>Max commute time </label>
+                  <input ref={inputRef} type="number" size={1} />
+                  <Button onClick={saveCommuteTime}> Enter </Button> <div></div>
+                  <Checkbox />
+                  <span> Tube </span>
+                  <Checkbox />
+                  <span> Walking </span> <div></div>
+                  <Checkbox />
+                  <span> Cycling </span>
+                </Popup>
+              </ButtonGroup>
+            </HStack>
+            <HStack spacing={4} mt={4} justifyContent="space-between">
+              <Stack direction={["column"]} spacing="7px">
+                <Text> Location: {cookies.location} </Text>
+                {cookies.prev && (
+                  <Text fontSize="14px" color="grey">
+                    Previous searches:
+                  </Text>
+                )}
+                {cookies.prev && (
+                  <Stack direction={["row"]} spacing="5px">
                     <Button
                       size="xs"
                       colorScheme="pink"
                       variant="outline"
-                      onClick={placePrevPrevMarker}
+                      onClick={placePrevMarker}
                     >
-                      {cookies.prevprev}
+                      {cookies.prev}
                     </Button>
-                  )}
-                </Stack>
-              )}
-            </Stack>
-          </HStack>
-        </Box>
+                    {cookies.prevprev && (
+                      <Button
+                        size="xs"
+                        colorScheme="pink"
+                        variant="outline"
+                        onClick={placePrevPrevMarker}
+                      >
+                        {cookies.prevprev}
+                      </Button>
+                    )}
+                  </Stack>
+                )}
+              </Stack>
+            </HStack>
+          </Box>
+        </Flex>
       </Flex>
     </CookiesProvider>
   );
