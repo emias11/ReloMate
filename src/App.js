@@ -13,6 +13,7 @@ import {
   useColorModeValue,
   IconButton,
   Link,
+  Icon,
 } from "@chakra-ui/react";
 
 import {
@@ -24,6 +25,7 @@ import {
 } from "@react-google-maps/api";
 
 import { RxCrossCircled } from "react-icons/rx";
+import { ReactComponent as Logo } from "./zoopla-cropped.svg";
 
 import { useRef, useState, React } from "react";
 import Popup from "reactjs-popup";
@@ -452,7 +454,7 @@ function App() {
     } else if (circleRadius < 40) {
       radius = 40;
     } else {
-      radius = 40;
+      radius = 50;
     }
     const zooplaLink = 
     `https://www.zoopla.co.uk/to-rent/property/station/tube/${tube}/?price_frequency=per_month&radius=${radius}&results_sort=newest_listings&search_source=to-rent`;
@@ -479,7 +481,6 @@ function App() {
   function clearCircles() {
     // Remove each circle from the map
     circles.forEach((circle) => circle.setMap(null));
-
     // Clear the circles state
     setCircles([]);
   }
@@ -531,14 +532,6 @@ function App() {
     );
   }
 
-  const ZooplaLink = ({ url }) => {
-    return (
-      <Link href={url} isExternal>
-        {/* <FaZoopla size={24} /> */}
-      </Link>
-    );
-  };
-
   return (
     <CookiesProvider>
       <Flex
@@ -562,12 +555,17 @@ function App() {
               padding={"3px"}
               onClick={toggle}
             ></IconButton>
-            <Text>{title}</Text>
+            <HStack>
+              <Text>{title}</Text>
+              <Link href={zooplaLink} target="_blank" rel="noopener noreferrer" isExternal>
+                <Icon as={Logo} 
+                boxSize={50} 
+                height={1}
+                />
+              </Link>
+            </HStack>
             <Text>{generalText}</Text>
             <Text>{infoText}</Text>
-            <Link href={zooplaLink} isExternal>
-              Zoopla <IconButton name="external-link" mx="2px" />
-            </Link>
           </Box>
         )}
         <Flex
@@ -700,7 +698,7 @@ function App() {
                 >
                   <label>Max commute time </label>
                   <input ref={inputRef} type="number" size={1} />
-                  <Button onClick={saveCommuteTime}> Enter </Button> <div></div>
+                  <Button size="xs" onClick={saveCommuteTime}> Enter </Button> <div></div>
                   <Checkbox />
                   <span> Tube </span>
                   <Checkbox />
