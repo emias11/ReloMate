@@ -12,6 +12,7 @@ import {
   Stack,
   useColorModeValue,
   IconButton,
+  Link,
 } from "@chakra-ui/react";
 
 import {
@@ -28,6 +29,7 @@ import { useRef, useState, React } from "react";
 import Popup from "reactjs-popup";
 import "reactjs-popup/dist/index.css";
 import { CookiesProvider, useCookies } from "react-cookie";
+import { set } from "lodash";
 
 var commuteTime = 40 * 60; // seconds
 const avgWalkingSpeed = 1; // m/s
@@ -244,6 +246,7 @@ function App() {
   const [generalText, setGeneralText] = useState("Next");
   const [infoText, setInfoText] = useState("Info");
   const [title, setTitle] = useState("Title");
+  const [zooplaLink, setZooplaLink] = useState("");
   const changeGeneralText = (text) => setGeneralText(text);
   const changeInfoText = (text) => setInfoText(text);
   const changeTitle = (text) => setTitle(text);
@@ -390,9 +393,12 @@ function App() {
     });
     // Add a listener for when the circle is clicked
     circle.addListener("click", function () {
-      //alert("Circle clicked!");
-      //atm toggles at every click, will want to change so if already
-      // toggled it will just change the information displayed
+      let walkingTime = Math.round(radius / avgWalkingSpeed / 60);
+      let tubeTime = Math.round(commuteTime / 60 - walkingTime);
+      alert("Walking time: " + walkingTime + " minutes");
+      alert("Tube time: " + tubeTime + " minutes");
+      const circleRadius = radius / 1609.34;//in miles
+      
       toggle();
       if (walkingFlag == true) {
         changeTitle("Walking only route");
@@ -404,12 +410,54 @@ function App() {
             changeTitle(tubeStations[i].name);
             changeGeneralText(tubeStations[i].general);
             changeInfoText(tubeStations[i].info);
+            generateZooplaLink(tubeStations[i].name, circleRadius);
+            console.log(circleRadius);
           }
         }
       }
     });
     // Add the circle to the circles state
     setCircles((prevCircles) => [...prevCircles, circle]);
+  }
+
+  // Generates a link to Zoopla for the given tube station and circle radius
+  const generateZooplaLink = (tubeName, circleRadius) => {
+    //generate zoopla link using tube station and circle radius
+    let tube = tubeName.toLowerCase()
+    .replace(/'/g, "") // Remove apostrophes
+    .replace(/\s+/g, "-") // Replace spaces with dashes
+    .replace(/\./g, "") // Remove dots
+    .replace(/\//g, "-") // Replace slashes with dashes
+    .replace(/[^\w-]+/g, ""); // Remove special characters
+    //check if circleRadius is closest to 0.25, 0.5, 1, 3, 5, 10, 15, 20, 30, 40
+    let radius = 0;
+    if (circleRadius < 0.25) {
+      radius = 0.25;
+    } else if (circleRadius < 0.5) {
+      radius = 0.5;
+    } else if (circleRadius < 1) {
+      radius = 1;
+    } else if (circleRadius < 3) {
+      radius = 3;
+    } else if (circleRadius < 5) {
+      radius = 5;
+    } else if (circleRadius < 10) {
+      radius = 10;
+    } else if (circleRadius < 15) {
+      radius = 15;
+    } else if (circleRadius < 20) {
+      radius = 20;
+    } else if (circleRadius < 30) {
+      radius = 30;
+    } else if (circleRadius < 40) {
+      radius = 40;
+    } else {
+      radius = 40;
+    }
+    const zooplaLink = 
+    `https://www.zoopla.co.uk/to-rent/property/station/tube/${tube}/?price_frequency=per_month&radius=${radius}&results_sort=newest_listings&search_source=to-rent`;
+    setZooplaLink(zooplaLink);
+    
   }
 
   async function placePrevMarker() {
@@ -483,6 +531,14 @@ function App() {
     );
   }
 
+  const ZooplaLink = ({ url }) => {
+    return (
+      <Link href={url} isExternal>
+        {/* <FaZoopla size={24} /> */}
+      </Link>
+    );
+  };
+
   return (
     <CookiesProvider>
       <Flex
@@ -509,6 +565,9 @@ function App() {
             <Text>{title}</Text>
             <Text>{generalText}</Text>
             <Text>{infoText}</Text>
+            <Link href={zooplaLink} isExternal>
+              Zoopla <IconButton name="external-link" mx="2px" />
+            </Link>
           </Box>
         )}
         <Flex
