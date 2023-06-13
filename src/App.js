@@ -91,6 +91,9 @@ function App() {
   const [id, setId] = useState(0);
   const [markers, setMarkers] = useState([]);
 
+  const [buttonText, setButtonText] = useState("Next");
+  const changeText = (text) => setButtonText(text);
+
   const addMarker = (coords) => {
     setId((id) => id + 1);
     setMarkers((markers) => markers.concat([{ coords, id }]));
@@ -194,7 +197,7 @@ function App() {
                   lat: results[0].geometry.location.lat(),
                   lng: results[0].geometry.location.lng(),
                 };
-                placeCircle(originCoord, avgWalkingSpeed * commuteTime);
+                placeCircle(originCoord, avgWalkingSpeed * commuteTime, true);
               }
             }
           );
@@ -205,7 +208,8 @@ function App() {
               placeCircle(
                 tubeStation.coords,
                 avgWalkingSpeed *
-                  (commuteTime - result.rows[0].elements[i].duration.value)
+                  (commuteTime - result.rows[0].elements[i].duration.value),
+                false
               );
             } else {
               console.log("No stations in commuting distance");
@@ -219,7 +223,7 @@ function App() {
   }
 
   // Places a circle on the map with the given center and radius
-  async function placeCircle(center, radius) {
+  async function placeCircle(center, radius, walkingFlag) {
     const circle = new google.maps.Circle({
       strokeColor: "#FF0000",
       strokeOpacity: 0.8,
@@ -233,7 +237,18 @@ function App() {
     // Add a listener for when the circle is clicked
     circle.addListener("click", function () {
       //alert("Circle clicked!");
+      //atm toggles at every click, will want to change so if already
+      // toggled it will just change the information displayed
       toggle();
+      if (walkingFlag == true) {
+        changeText("walking");
+      } else {
+        for (var i = 0; tubeStations[i]; i++) {
+          if (tubeStations[i].coords == center) {
+            changeText(tubeStations[i].name);
+          }
+        }
+      }
     });
     // Add the circle to the circles state
     setCircles((prevCircles) => [...prevCircles, circle]);
@@ -289,14 +304,15 @@ function App() {
       },
       (result, status) => {
         if (status === "OK") {
-          placeCircle(coord, avgWalkingSpeed * commuteTime);
+          placeCircle(coord, avgWalkingSpeed * commuteTime, true);
           for (let i = 0; i < tubeStations.length; i++) {
             const tubeStation = tubeStations[i];
             if (result.rows[0].elements[i].duration.value < commuteTime) {
               placeCircle(
                 tubeStation.coords,
                 avgWalkingSpeed *
-                  (commuteTime - result.rows[0].elements[i].duration.value)
+                  (commuteTime - result.rows[0].elements[i].duration.value),
+                false
               );
             } else {
               console.log("No stations in commuting distance");
@@ -333,7 +349,7 @@ function App() {
               onClick={toggle}
             ></IconButton>
             <Text>This is the left section</Text>
-            <Text>Placeholder text</Text>
+            <Text>{buttonText}</Text>
           </Box>
         )}
         <Flex
