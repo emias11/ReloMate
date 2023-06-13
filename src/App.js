@@ -77,6 +77,12 @@ function App() {
 
   const [map, setMap] = useState(/** @type google.maps.Map */ null);
   const [directionsResponse, setDirectionsResponse] = useState(null);
+  //for side bar
+  const [isOpen, setIsOpen] = useState(false);
+
+  function toggle() {
+    setIsOpen((isOpen) => !isOpen);
+  }
 
   // Track the circles added to the map
   const [circles, setCircles] = useState([]);
@@ -226,7 +232,8 @@ function App() {
     });
     // Add a listener for when the circle is clicked
     circle.addListener("click", function () {
-      alert("Circle clicked!");
+      //alert("Circle clicked!");
+      toggle();
     });
     // Add the circle to the circles state
     setCircles((prevCircles) => [...prevCircles, circle]);
@@ -311,21 +318,24 @@ function App() {
         h="100vh"
         w="100vw"
       >
-        <Box bg="white" w="400px" p={4} position="relative">
-          <IconButton
-            icon={<RxCrossCircled />}
-            fontSize="25px"
-            position="absolute"
-            bg="white"
-            color="#cf0083"
-            top={1}
-            right={1}
-            zIndex={1}
-            padding={"3px"}
-          ></IconButton>
-          <Text>This is the left section</Text>
-          <Text>Placeholder text</Text>
-        </Box>
+        {isOpen && (
+          <Box bg="white" w="400px" p={4} position="relative">
+            <IconButton
+              icon={<RxCrossCircled />}
+              fontSize="25px"
+              position="absolute"
+              bg="white"
+              color="#cf0083"
+              top={1}
+              right={1}
+              zIndex={1}
+              padding={"3px"}
+              onClick={toggle}
+            ></IconButton>
+            <Text>This is the left section</Text>
+            <Text>Placeholder text</Text>
+          </Box>
+        )}
         <Flex
           position="relative"
           flexDirection="column"
