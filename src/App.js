@@ -168,12 +168,13 @@ function App() {
     const directionsService = new google.maps.DistanceMatrixService();
     await directionsService.getDistanceMatrix(
       {
-        origins: [origin],
+        origins: [origin, { lat: 51.5416, lng: -0.0034 }],
         destinations: tubeStations.map((station) => station.coords),
         travelMode: google.maps.TravelMode.TRANSIT,
       },
       (result, status) => {
         if (status === "OK") {
+          console.log(result);
           var geocoder = new google.maps.Geocoder();
           geocoder.geocode(
             { address: origin },
@@ -190,14 +191,18 @@ function App() {
 
           for (let i = 0; i < tubeStations.length; i++) {
             const tubeStation = tubeStations[i];
-            if (result.rows[0].elements[i].duration.value < commuteTime) {
+            var shouldPlaceCircle = true;
+            for (let j = 0; j < result.originAddresses.length; j++) {
+              if (result.rows[j].elements[i].duration.value > commuteTime) {
+                shouldPlaceCircle = false;
+              }
+            }
+            if (shouldPlaceCircle) {
               placeCircle(
                 tubeStation.coords,
                 avgWalkingSpeed *
                   (commuteTime - result.rows[0].elements[i].duration.value)
               );
-            } else {
-              console.log("No stations in commuting distance");
             }
           }
         } else {
@@ -268,7 +273,7 @@ function App() {
     const directionsService = new google.maps.DistanceMatrixService();
     await directionsService.getDistanceMatrix(
       {
-        origins: [coord],
+        origins: [coord, { lat: 51.5416, lng: -0.0034 }],
         destinations: tubeStations.map((station) => station.coords),
         travelMode: google.maps.TravelMode.TRANSIT,
       },
@@ -277,7 +282,13 @@ function App() {
           placeCircle(coord, avgWalkingSpeed * commuteTime);
           for (let i = 0; i < tubeStations.length; i++) {
             const tubeStation = tubeStations[i];
-            if (result.rows[0].elements[i].duration.value < commuteTime) {
+            var shouldPlaceCircle = true;
+            for (let j = 0; j < result.originAddresses.length; j++) {
+              if (result.rows[j].elements[i].duration.value > commuteTime) {
+                shouldPlaceCircle = false;
+              }
+            }
+            if (shouldPlaceCircle) {
               placeCircle(
                 tubeStation.coords,
                 avgWalkingSpeed *
@@ -325,7 +336,7 @@ function App() {
                 const directionsService = new google.maps.DistanceMatrixService();
                 await directionsService.getDistanceMatrix(
                   {
-                    origins: [coord],
+                    origins: [coord, { lat: 51.5416, lng: -0.0034 }],
                     destinations: tubeStations.map((station) => station.coords),
                     travelMode: google.maps.TravelMode.TRANSIT,
                   },
@@ -346,7 +357,13 @@ function App() {
                       
                       for (let i = 0; i < tubeStations.length; i++) {
                         const tubeStation = tubeStations[i];
-                        if (result.rows[0].elements[i].duration.value < commuteTime) {
+                        var shouldPlaceCircle = true;
+                        for (let j = 0; j < result.originAddresses.length; j++) {
+                          if (result.rows[j].elements[i].duration.value > commuteTime) {
+                            shouldPlaceCircle = false;
+                          }
+                        }
+                        if (shouldPlaceCircle) {
                           var circle = new google.maps.Circle({
                             strokeColor: "#FF0000",
                             strokeOpacity: 0.8,
