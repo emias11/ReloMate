@@ -13,6 +13,7 @@ import {
   useColorModeValue,
   IconButton,
   Spacer,
+  Link,
   Icon,
 } from "@chakra-ui/react";
 
@@ -25,12 +26,14 @@ import {
 } from "@react-google-maps/api";
 
 import { RxCrossCircled } from "react-icons/rx";
+import { ReactComponent as Logo } from "./zoopla-cropped.svg";
 
 import { useRef, useState, React } from "react";
 import Popup from "reactjs-popup";
 import "reactjs-popup/dist/index.css";
 import { CookiesProvider, useCookies } from "react-cookie";
 import { ReactComponent as TubeLogo } from "./logo.svg";
+import { set } from "lodash";
 
 var commuteTime = 40 * 60; // seconds
 const avgWalkingSpeed = 1; // m/s
@@ -276,6 +279,7 @@ function App() {
   const [generalText, setGeneralText] = useState("Next");
   const [infoText, setInfoText] = useState("Info");
   const [title, setTitle] = useState("Title");
+  const [zooplaLink, setZooplaLink] = useState("");
   const changeGeneralText = (text) => setGeneralText(text);
   const changeInfoText = (text) => setInfoText(text);
   const changeTitle = (text) => setTitle(text);
@@ -423,6 +427,11 @@ function App() {
     // Add a listener for when the circle is clicked
     circle.addListener("click", function () {
       turnOn();
+      let walkingTime = Math.round(radius / avgWalkingSpeed / 60);
+      let tubeTime = Math.round(commuteTime / 60 - walkingTime);
+      alert("Walking time: " + walkingTime + " minutes");
+      alert("Tube time: " + tubeTime + " minutes");
+      const circleRadius = radius / 1609.34;//in miles
       if (walkingFlag == true) {
         changeTitle("Walking only route");
         changeGeneralText("");
@@ -433,12 +442,54 @@ function App() {
             changeTitle(tubeStations[i].name);
             changeGeneralText(tubeStations[i].generalinfo);
             changeInfoText(tubeStations[i].priceinfo);
+            generateZooplaLink(tubeStations[i].name, circleRadius);
+            console.log(circleRadius);
           }
         }
       }
     });
     // Add the circle to the circles state
     setCircles((prevCircles) => [...prevCircles, circle]);
+  }
+
+  // Generates a link to Zoopla for the given tube station and circle radius
+  const generateZooplaLink = (tubeName, circleRadius) => {
+    //generate zoopla link using tube station and circle radius
+    let tube = tubeName.toLowerCase()
+    .replace(/'/g, "") // Remove apostrophes
+    .replace(/\s+/g, "-") // Replace spaces with dashes
+    .replace(/\./g, "") // Remove dots
+    .replace(/\//g, "-") // Replace slashes with dashes
+    .replace(/[^\w-]+/g, ""); // Remove special characters
+    //check if circleRadius is closest to 0.25, 0.5, 1, 3, 5, 10, 15, 20, 30, 40
+    let radius = 0;
+    if (circleRadius < 0.25) {
+      radius = 0.25;
+    } else if (circleRadius < 0.5) {
+      radius = 0.5;
+    } else if (circleRadius < 1) {
+      radius = 1;
+    } else if (circleRadius < 3) {
+      radius = 3;
+    } else if (circleRadius < 5) {
+      radius = 5;
+    } else if (circleRadius < 10) {
+      radius = 10;
+    } else if (circleRadius < 15) {
+      radius = 15;
+    } else if (circleRadius < 20) {
+      radius = 20;
+    } else if (circleRadius < 30) {
+      radius = 30;
+    } else if (circleRadius < 40) {
+      radius = 40;
+    } else {
+      radius = 50;
+    }
+    const zooplaLink = 
+    `https://www.zoopla.co.uk/to-rent/property/station/tube/${tube}/?price_frequency=per_month&radius=${radius}&results_sort=newest_listings&search_source=to-rent`;
+    setZooplaLink(zooplaLink);
+    
   }
 
   async function placePrevMarker() {
@@ -460,7 +511,6 @@ function App() {
   function clearCircles() {
     // Remove each circle from the map
     circles.forEach((circle) => circle.setMap(null));
-
     // Clear the circles state
     setCircles([]);
   }
@@ -541,6 +591,12 @@ function App() {
                 height={10}
                 />
             <Text>{title}</Text>
+            <Link href={zooplaLink} target="_blank" rel="noopener noreferrer" isExternal>
+                <Icon as={Logo} 
+                boxSize={50} 
+                height={1}
+                />
+              </Link>
             </HStack>
             <br></br>
             <Text fontSize="13.5px">{generalText}</Text>
@@ -678,7 +734,7 @@ function App() {
                 >
                   <label>Max commute time </label>
                   <input ref={inputRef} type="number" size={1} />
-                  <Button onClick={saveCommuteTime}> Enter </Button> <div></div>
+                  <Button size="xs" onClick={saveCommuteTime}> Enter </Button> <div></div>
                   <Checkbox />
                   <span> Tube </span>
                   <Checkbox />
