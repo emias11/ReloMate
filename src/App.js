@@ -79,10 +79,12 @@ function App() {
   //for markers
   const [id, setId] = useState(0);
   const [markers, setMarkers] = useState([]);
+  var myMarkers;
 
   const addMarker = (coords) => {
     setId((id) => id + 1);
     setMarkers((markers) => markers.concat([{ coords, id }]));
+    myMarkers = markers.concat([{ coords, id }]);
   };
 
   /** @type React.MutableRefObject<HTMLInputElement> */
@@ -93,15 +95,20 @@ function App() {
     return <SkeletonText />;
   }
 
-  async function saveCommuteTime() {
+  const saveCommuteTime = () => {
     commuteTime = inputRef.current.value * 60;
   }
 
-  async function removeMarker(id) {
+  const removeMarker = (id) => {
     setMarkers((markers) => markers.filter((marker) => marker.id !== id));
+    myMarkers = markers.filter((marker) => marker.id !== id);
+    clearCircles();
+    if (myMarkers.length != 0) {
+      getTime();
+    }
   }
 
-  async function placeMarkerWithHistory() {
+  const placeMarkerWithHistory = async () => {
     let address = originRef.current.value;
     var geocoder = new google.maps.Geocoder();
     await geocoder.geocode(
@@ -112,22 +119,21 @@ function App() {
             lat: results[0].geometry.location.lat(),
             lng: results[0].geometry.location.lng(),
           };
-          setCookie("location", originRef.current.value, { path: "/" });
+          setCookie("location", address, { path: "/" });
           setCookie("lat", coord.lat, { path: "/" });
           setCookie("long", coord.lng, { path: "/" });
           clearCircles();
-          setMarkers([]);
           addMarker(coord);
-          getTime(address);
+          getTime();
         } else {
           console.log("Geocoding failed: " + status);
         }
       }
     );
-    setCookie("location", originRef.current.value, { path: "/" });
+    setCookie("location", address, { path: "/" });
   }
 
-  async function placeMarker() {
+  const placeMarker = async () => {
     let address = originRef.current.value;
     var geocoder = new google.maps.Geocoder();
     await geocoder.geocode(
@@ -148,60 +154,81 @@ function App() {
           } else if (cookies.prev == null && cookies.location != null) {
             setCookie("prev", cookies.location, { path: "/" });
           }
-          setCookie("location", originRef.current.value, { path: "/" });
+          setCookie("location", address, { path: "/" });
           setCookie("lat", coord.lat, { path: "/" });
           setCookie("long", coord.lng, { path: "/" });
           clearCircles();
-          setMarkers([]);
           addMarker(coord);
-          getTime(address);
+          getTime();
         } else {
           console.log("Geocoding failed: " + status);
         }
       }
     );
-    setCookie("location", originRef.current.value, { path: "/" });
+    setCookie("location", address, { path: "/" });
   }
 
   // Gets the time from the Google Maps API to get from the origin to the destination using public transport
-  async function getTime(origin) {
+  const getTime = async () => {
     const directionsService = new google.maps.DistanceMatrixService();
     await directionsService.getDistanceMatrix(
       {
-        origins: [origin, { lat: 51.5416, lng: -0.0034 }],
+        origins: myMarkers.map((marker) => marker.coords),
         destinations: tubeStations.map((station) => station.coords),
         travelMode: google.maps.TravelMode.TRANSIT,
       },
-      (result, status) => {
+      async (result, status) => {
         if (status === "OK") {
-          console.log(result);
-          var geocoder = new google.maps.Geocoder();
-          geocoder.geocode(
-            { address: origin },
-            async function (results, status) {
-              if (status == google.maps.GeocoderStatus.OK) {
-                const originCoord = {
-                  lat: results[0].geometry.location.lat(),
-                  lng: results[0].geometry.location.lng(),
-                };
-                placeCircle(originCoord, avgWalkingSpeed * commuteTime);
-              }
-            }
-          );
-
+          // Place a circle at each tube station that is based on the max commute time
           for (let i = 0; i < tubeStations.length; i++) {
             const tubeStation = tubeStations[i];
-            var shouldPlaceCircle = true;
-            for (let j = 0; j < result.originAddresses.length; j++) {
-              if (result.rows[j].elements[i].duration.value > commuteTime) {
-                shouldPlaceCircle = false;
-              }
+            let commuteTimes = [];
+            for (let j = 0; j < myMarkers.length; j++) {
+              commuteTimes.push(result.rows[j].elements[i].duration.value);
             }
-            if (shouldPlaceCircle) {
+            let maxCommuteTime = Math.max(...commuteTimes);
+            if (maxCommuteTime < commuteTime) {
               placeCircle(
                 tubeStation.coords,
                 avgWalkingSpeed *
-                  (commuteTime - result.rows[0].elements[i].duration.value)
+                  (commuteTime - maxCommuteTime)
+              );
+            }
+          }
+          // Place a circle at each marker for walking time
+          for (let i = 0; i < myMarkers.length; i++) {
+            const marker = myMarkers[i];
+            if (myMarkers.length > 1) {
+              await directionsService.getDistanceMatrix(
+                {
+                  origins: [marker.coords],
+                  destinations: myMarkers.filter((m) => m.id !== marker.id).map((m) => m.coords),
+                  travelMode: google.maps.TravelMode.TRANSIT,
+                },
+                (result, status) => {
+                  if (status === "OK") {
+                    let commuteTimes = [];
+                    for (let j = 0; j < myMarkers.length - 1; j++) {
+                      commuteTimes.push(result.rows[0].elements[j].duration.value);
+                    }
+                    let maxCommuteTime = Math.max(...commuteTimes);
+                    if (maxCommuteTime < commuteTime) {
+                      placeCircle(
+                        marker.coords,
+                        avgWalkingSpeed *
+                          (commuteTime - maxCommuteTime)
+                      );
+                    }
+                  } else {
+                    console.error(`error fetching directions ${result}`);
+                  }
+                }
+              );
+            } else {
+              placeCircle(
+                marker.coords,
+                avgWalkingSpeed *
+                  (commuteTime)
               );
             }
           }
@@ -213,7 +240,7 @@ function App() {
   }
 
   // Places a circle on the map with the given center and radius
-  async function placeCircle(center, radius) {
+  const placeCircle = (center, radius) => {
     const circle = new google.maps.Circle({
       strokeColor: "#FF0000",
       strokeOpacity: 0.8,
@@ -229,14 +256,14 @@ function App() {
     setCircles((prevCircles) => [...prevCircles, circle]);
   }
 
-  async function placePrevMarker() {
+  const placePrevMarker = () => {
     const temp = originRef.current.value;
     originRef.current.value = cookies.prev;
     setCookie("prev", temp, { path: "/" });
     placeMarkerWithHistory();
   }
 
-  async function placePrevPrevMarker() {
+  const placePrevPrevMarker = () => {
     setCookie("prevprev", cookies.prev, { path: "/" });
     const temp = cookies.prevprev;
     setCookie("prev", originRef.current.value, { path: "/" });
@@ -253,7 +280,7 @@ function App() {
     setCircles([]);
   }
 
-  async function onMapClick(coord) {
+  const onMapClick = async (coord) => {
     //will store text location, lat, long all as strings
     if (cookies.prevprev != null && cookies.prev != null) {
       setCookie("prevprev", cookies.prev, { path: "/" });
@@ -268,41 +295,8 @@ function App() {
     setCookie("lat", coord.lat, { path: "/" });
     setCookie("long", coord.lng, { path: "/" });
     clearCircles();
-    setMarkers([]);
     addMarker(coord);
-    const directionsService = new google.maps.DistanceMatrixService();
-    await directionsService.getDistanceMatrix(
-      {
-        origins: [coord, { lat: 51.5416, lng: -0.0034 }],
-        destinations: tubeStations.map((station) => station.coords),
-        travelMode: google.maps.TravelMode.TRANSIT,
-      },
-      (result, status) => {
-        if (status === "OK") {
-          placeCircle(coord, avgWalkingSpeed * commuteTime);
-          for (let i = 0; i < tubeStations.length; i++) {
-            const tubeStation = tubeStations[i];
-            var shouldPlaceCircle = true;
-            for (let j = 0; j < result.originAddresses.length; j++) {
-              if (result.rows[j].elements[i].duration.value > commuteTime) {
-                shouldPlaceCircle = false;
-              }
-            }
-            if (shouldPlaceCircle) {
-              placeCircle(
-                tubeStation.coords,
-                avgWalkingSpeed *
-                  (commuteTime - result.rows[0].elements[i].duration.value)
-              );
-            } else {
-              console.log("No stations in commuting distance");
-            }
-          }
-        } else {
-          console.error(`error fetching directions ${result}`);
-        }
-      }
-    );
+    getTime();
   }
 
   return (
@@ -475,6 +469,9 @@ function App() {
                 </Stack>
               )}
             </Stack>
+            <Text fontSize="14px" color="grey">
+              Max commute time: {commuteTime / 60} mins
+            </Text>
           </HStack>
         </Box>
       </Flex>
