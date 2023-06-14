@@ -13,6 +13,7 @@ import {
   useColorModeValue,
   IconButton,
   Spacer,
+  Icon,
 } from "@chakra-ui/react";
 
 import {
@@ -29,6 +30,7 @@ import { useRef, useState, React } from "react";
 import Popup from "reactjs-popup";
 import "reactjs-popup/dist/index.css";
 import { CookiesProvider, useCookies } from "react-cookie";
+import { ReactComponent as TubeLogo } from "./logo.svg";
 
 var commuteTime = 40 * 60; // seconds
 const avgWalkingSpeed = 1; // m/s
@@ -533,7 +535,13 @@ function App() {
               padding={"3px"}
               onClick={turnOff}
             ></IconButton>
+            <HStack>
+            <Icon as={TubeLogo} 
+                boxSize={10} 
+                height={10}
+                />
             <Text>{title}</Text>
+            </HStack>
             <br></br>
             <Text fontSize="13.5px">{generalText}</Text>
             <br></br>
