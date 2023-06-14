@@ -301,7 +301,7 @@ function App() {
 
   const saveCommuteTime = () => {
     commuteTime = inputRef.current.value * 60;
-  }
+  };
 
   const removeMarker = (id) => {
     setMarkers((markers) => markers.filter((marker) => marker.id !== id));
@@ -310,7 +310,7 @@ function App() {
     if (myMarkers.length != 0) {
       getTime();
     }
-  }
+  };
 
   const placeMarkerWithHistory = async () => {
     let address = originRef.current.value;
@@ -335,7 +335,7 @@ function App() {
       }
     );
     setCookie("location", address, { path: "/" });
-  }
+  };
 
   const placeMarker = async () => {
     let address = originRef.current.value;
@@ -370,7 +370,7 @@ function App() {
       }
     );
     setCookie("location", address, { path: "/" });
-  }
+  };
 
   // Gets the time from the Google Maps API to get from the origin to the destination using public transport
   const getTime = async () => {
@@ -394,8 +394,8 @@ function App() {
             if (maxCommuteTime < commuteTime) {
               placeCircle(
                 tubeStation.coords,
-                avgWalkingSpeed *
-                  (commuteTime - maxCommuteTime)
+                avgWalkingSpeed * (commuteTime - maxCommuteTime),
+                false
               );
             }
           }
@@ -406,21 +406,25 @@ function App() {
               await directionsService.getDistanceMatrix(
                 {
                   origins: [marker.coords],
-                  destinations: myMarkers.filter((m) => m.id !== marker.id).map((m) => m.coords),
+                  destinations: myMarkers
+                    .filter((m) => m.id !== marker.id)
+                    .map((m) => m.coords),
                   travelMode: google.maps.TravelMode.TRANSIT,
                 },
                 (result, status) => {
                   if (status === "OK") {
                     let commuteTimes = [];
                     for (let j = 0; j < myMarkers.length - 1; j++) {
-                      commuteTimes.push(result.rows[0].elements[j].duration.value);
+                      commuteTimes.push(
+                        result.rows[0].elements[j].duration.value
+                      );
                     }
                     let maxCommuteTime = Math.max(...commuteTimes);
                     if (maxCommuteTime < commuteTime) {
                       placeCircle(
                         marker.coords,
-                        avgWalkingSpeed *
-                          (commuteTime - maxCommuteTime)
+                        avgWalkingSpeed * (commuteTime - maxCommuteTime),
+                        true
                       );
                     }
                   } else {
@@ -429,11 +433,7 @@ function App() {
                 }
               );
             } else {
-              placeCircle(
-                marker.coords,
-                avgWalkingSpeed *
-                  (commuteTime)
-              );
+              placeCircle(marker.coords, avgWalkingSpeed * commuteTime, true);
             }
           }
         } else {
@@ -441,7 +441,7 @@ function App() {
         }
       }
     );
-  }
+  };
 
   // Places a circle on the map with the given center and radius
   const placeCircle = (center, radius, walkingFlag) => {
@@ -479,7 +479,7 @@ function App() {
     });
     // Add the circle to the circles state
     setCircles((prevCircles) => [...prevCircles, circle]);
-  }
+  };
 
   // Generates a link to Zoopla for the given tube station and circle radius
   const generateZooplaLink = (tubeName, circleRadius) => {
@@ -525,7 +525,7 @@ function App() {
     originRef.current.value = cookies.prev;
     setCookie("prev", temp, { path: "/" });
     placeMarkerWithHistory();
-  }
+  };
 
   const placePrevPrevMarker = () => {
     setCookie("prevprev", cookies.prev, { path: "/" });
@@ -533,7 +533,7 @@ function App() {
     setCookie("prev", originRef.current.value, { path: "/" });
     originRef.current.value = temp;
     placeMarkerWithHistory();
-  }
+  };
 
   // Clear all circles from the map
   function clearCircles() {
@@ -560,7 +560,7 @@ function App() {
     clearCircles();
     addMarker(coord);
     getTime();
-  }
+  };
 
   return (
     <CookiesProvider>
@@ -634,7 +634,8 @@ function App() {
                 clearCircles();
                 setMarkers([]);
                 addMarker(coord);
-                const directionsService = new google.maps.DistanceMatrixService();
+                const directionsService =
+                  new google.maps.DistanceMatrixService();
                 await directionsService.getDistanceMatrix(
                   {
                     origins: myMarkers.map((marker) => marker.coords),
@@ -648,13 +649,16 @@ function App() {
                         const tubeStation = tubeStations[i];
                         let commuteTimes = [];
                         for (let j = 0; j < myMarkers.length; j++) {
-                          commuteTimes.push(result.rows[j].elements[i].duration.value);
+                          commuteTimes.push(
+                            result.rows[j].elements[i].duration.value
+                          );
                         }
                         let maxCommuteTime = Math.max(...commuteTimes);
                         if (maxCommuteTime < commuteTime) {
                           // Places a circle at each tube station
                           let circleCenter = tubeStation.coords;
-                          let radius = avgWalkingSpeed *  (commuteTime - maxCommuteTime);
+                          let radius =
+                            avgWalkingSpeed * (commuteTime - maxCommuteTime);
                           const circle = new google.maps.Circle({
                             strokeColor: "#FF0000",
                             strokeOpacity: 0.8,
@@ -668,15 +672,22 @@ function App() {
                           // Add a listener for when the circle is clicked
                           circle.addListener("click", function () {
                             turnOn();
-                            let walkingTime = Math.round(radius / avgWalkingSpeed / 60);
-                            let tubeTime = Math.round(commuteTime / 60 - walkingTime);
+                            let walkingTime = Math.round(
+                              radius / avgWalkingSpeed / 60
+                            );
+                            let tubeTime = Math.round(
+                              commuteTime / 60 - walkingTime
+                            );
                             const circleRadius = radius / 1609.34; //in miles
                             for (var i = 0; tubeStations[i]; i++) {
                               if (tubeStations[i].coords == center) {
                                 changeTitle(tubeStations[i].name);
                                 changeGeneralText(tubeStations[i].generalinfo);
                                 changeInfoText(tubeStations[i].priceinfo);
-                                generateZooplaLink(tubeStations[i].name, circleRadius);
+                                generateZooplaLink(
+                                  tubeStations[i].name,
+                                  circleRadius
+                                );
                                 console.log(circleRadius);
                               }
                             }
@@ -692,33 +703,40 @@ function App() {
                           await directionsService.getDistanceMatrix(
                             {
                               origins: [marker.coords],
-                              destinations: myMarkers.filter((m) => m.id !== marker.id).map((m) => m.coords),
+                              destinations: myMarkers
+                                .filter((m) => m.id !== marker.id)
+                                .map((m) => m.coords),
                               travelMode: google.maps.TravelMode.TRANSIT,
                             },
                             (result, status) => {
                               if (status === "OK") {
                                 let commuteTimes = [];
                                 for (let j = 0; j < myMarkers.length - 1; j++) {
-                                  commuteTimes.push(result.rows[0].elements[j].duration.value);
+                                  commuteTimes.push(
+                                    result.rows[0].elements[j].duration.value
+                                  );
                                 }
                                 let maxCommuteTime = Math.max(...commuteTimes);
                                 if (maxCommuteTime < commuteTime) {
                                   placeCircle(
                                     marker.coords,
                                     avgWalkingSpeed *
-                                      (commuteTime - maxCommuteTime)
+                                      (commuteTime - maxCommuteTime),
+                                    true
                                   );
                                 }
                               } else {
-                                console.error(`error fetching directions ${result}`);
+                                console.error(
+                                  `error fetching directions ${result}`
+                                );
                               }
                             }
                           );
                         } else {
                           placeCircle(
                             marker.coords,
-                            avgWalkingSpeed *
-                              (commuteTime)
+                            avgWalkingSpeed * commuteTime,
+                            true
                           );
                         }
                       }
