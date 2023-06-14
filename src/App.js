@@ -460,9 +460,7 @@ function App() {
       turnOn();
       let walkingTime = Math.round(radius / avgWalkingSpeed / 60);
       let tubeTime = Math.round(commuteTime / 60 - walkingTime);
-      alert("Walking time: " + walkingTime + " minutes");
-      alert("Tube time: " + tubeTime + " minutes");
-      const circleRadius = radius / 1609.34;//in miles
+      const circleRadius = radius / 1609.34; //in miles
       if (walkingFlag == true) {
         changeTitle("Walking only route");
         changeGeneralText("");
@@ -486,12 +484,13 @@ function App() {
   // Generates a link to Zoopla for the given tube station and circle radius
   const generateZooplaLink = (tubeName, circleRadius) => {
     //generate zoopla link using tube station and circle radius
-    let tube = tubeName.toLowerCase()
-    .replace(/'/g, "") // Remove apostrophes
-    .replace(/\s+/g, "-") // Replace spaces with dashes
-    .replace(/\./g, "") // Remove dots
-    .replace(/\//g, "-") // Replace slashes with dashes
-    .replace(/[^\w-]+/g, ""); // Remove special characters
+    let tube = tubeName
+      .toLowerCase()
+      .replace(/'/g, "") // Remove apostrophes
+      .replace(/\s+/g, "-") // Replace spaces with dashes
+      .replace(/\./g, "") // Remove dots
+      .replace(/\//g, "-") // Replace slashes with dashes
+      .replace(/[^\w-]+/g, ""); // Remove special characters
     //check if circleRadius is closest to 0.25, 0.5, 1, 3, 5, 10, 15, 20, 30, 40
     let radius = 0;
     if (circleRadius < 0.25) {
@@ -517,11 +516,9 @@ function App() {
     } else {
       radius = 50;
     }
-    const zooplaLink = 
-    `https://www.zoopla.co.uk/to-rent/property/station/tube/${tube}/?price_frequency=per_month&radius=${radius}&results_sort=newest_listings&search_source=to-rent`;
+    const zooplaLink = `https://www.zoopla.co.uk/to-rent/property/station/tube/${tube}/?price_frequency=per_month&radius=${radius}&results_sort=newest_listings&search_source=to-rent`;
     setZooplaLink(zooplaLink);
-    
-  }
+  };
 
   const placePrevMarker = () => {
     const temp = originRef.current.value;
@@ -588,20 +585,21 @@ function App() {
               padding={"3px"}
               onClick={turnOff}
             ></IconButton>
+            <Flex direction={"row"} align="center">
+              <Icon as={TubeLogo} boxSize={10} height={10} mr={3} />
+              <Text>{title}</Text>
+            </Flex>
+            <br></br>
             <HStack>
-            <Icon as={TubeLogo} 
-                boxSize={10} 
-                height={10}
-                />
-            <Text>{title}</Text>
-            <Link href={zooplaLink} target="_blank" rel="noopener noreferrer" isExternal>
-                <Icon as={Logo} 
-                boxSize={50} 
-                height={1}
-                />
+              <Link
+                href={zooplaLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                isExternal
+              >
+                <Icon as={Logo} boxSize={50} height={30} />
               </Link>
             </HStack>
-            <br></br>
             <Text fontSize="13.5px">{generalText}</Text>
             <br></br>
             <Text fontSize="13.5px">{infoText}</Text>
@@ -737,7 +735,11 @@ function App() {
                 >
                   <label>Max commute time </label>
                   <input ref={inputRef} type="number" size={1} />
-                  <Button size="xs" onClick={saveCommuteTime}> Enter </Button> <div></div>
+                  <Button size="xs" onClick={saveCommuteTime}>
+                    {" "}
+                    Enter{" "}
+                  </Button>{" "}
+                  <div></div>
                   <Checkbox />
                   <span> Tube </span>
                   <Checkbox />
