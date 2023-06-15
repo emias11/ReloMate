@@ -703,9 +703,9 @@ function App() {
                           if (maxCommuteTime < commuteTime) {
                             // Places a circle at each tube station
                             //copy of placeCircle function
-                            let circleCenter = tubeStation.coords;
-                            let radius =
-                              avgWalkingSpeed * (commuteTime - maxCommuteTime);
+                            let center = tubeStation.coords;
+                            let radius = avgWalkingSpeed * (commuteTime - maxCommuteTime);
+                            let walkingFlag = false;
                             const circle = new google.maps.Circle({
                               strokeColor: "#FF0000",
                               strokeOpacity: 0.8,
@@ -713,39 +713,70 @@ function App() {
                               fillColor: "#FF0000",
                               fillOpacity: 0.15,
                               map,
-                              center: circleCenter,
+                              center: center,
                               radius: radius,
                             });
                             // Add a listener for when the circle is clicked
                             circle.addListener("click", function () {
                               turnOn();
-                              let walkingTime = Math.round(
-                                radius / avgWalkingSpeed / 60
-                              );
-                              let tubeTime = Math.round(
-                                commuteTime / 60 - walkingTime
-                              );
+                              let walkingTime = Math.round(radius / avgWalkingSpeed / 60);
+                              let tubeTime = Math.round(commuteTime / 60 - walkingTime);
                               const circleRadius = radius / 1609.34; //in miles
-                              for (var i = 0; tubeStations[i]; i++) {
-                                if (tubeStations[i].coords == center) {
-                                  changeTitle(tubeStations[i].name);
-                                  changeGeneralText(
-                                    tubeStations[i].generalinfo
+                              if (walkingFlag == true) {
+                                changeLogo(WalkingLogo);
+                                changeTitle("Walking");
+                                changeGeneralText(
+                                  "This is a walking only route, where the walking will be up to " +
+                                    walkingTime +
+                                    " minutes."
+                                );
+                                changeInfoText(
+                                  "The closer you live to your destination within the circle, the less time you will spend walking."
+                                );
+                                var closestTube = tubeStations[0];
+                                const closestTubeStation = async () => {
+                                  const lat = Number(center.lat);
+                                  const lng = Number(center.lng);
+                                  //calculate pythagraous distance between lat lng and closestTube
+                                  var closestDistance = Math.sqrt(
+                                    (lat - closestTube.coords.lat) ** 2 +
+                                      (lng - closestTube.coords.lng) ** 2
                                   );
-                                  changeInfoText(tubeStations[i].priceinfo);
-                                  generateZooplaLink(
-                                    tubeStations[i].name,
-                                    circleRadius
-                                  );
-                                  console.log(circleRadius);
+                                  console.log("closest distance: ");
+                                  console.log(closestDistance);
+                                  for (var i = 1; tubeStations[i]; i++) {
+                                    if (
+                                      closestDistance >
+                                      Math.sqrt(
+                                        (lat - tubeStations[i].coords.lat) ** 2 +
+                                          (lng - tubeStations[i].coords.lng) ** 2
+                                      )
+                                    ) {
+                                      closestTube = tubeStations[i];
+                                      closestDistance = Math.sqrt(
+                                        (lat - tubeStations[i].coords.lat) ** 2 +
+                                          (lng - tubeStations[i].coords.lng) ** 2
+                                      );
+                                    }
+                                  }
+                                };
+                                closestTubeStation();
+                                generateZooplaLink(closestTube.name, circleRadius);
+                              } else {
+                                changeLogo(TubeLogo);
+                                for (var i = 0; tubeStations[i]; i++) {
+                                  if (tubeStations[i].coords == center) {
+                                    changeTitle(tubeStations[i].name);
+                                    changeGeneralText(tubeStations[i].generalinfo);
+                                    changeInfoText(tubeStations[i].priceinfo);
+                                    generateZooplaLink(tubeStations[i].name, circleRadius);
+                                    console.log(circleRadius);
+                                  }
                                 }
                               }
                             });
                             // Add the circle to the circles state
-                            setCircles((prevCircles) => [
-                              ...prevCircles,
-                              circle,
-                            ]);
+                            setCircles((prevCircles) => [...prevCircles, circle]);
                           }
                         }
                         // Place a circle at each marker for walking time
@@ -763,11 +794,7 @@ function App() {
                               (result, status) => {
                                 if (status === "OK") {
                                   let commuteTimes = [];
-                                  for (
-                                    let j = 0;
-                                    j < myMarkers.length - 1;
-                                    j++
-                                  ) {
+                                  for (let j = 0; j < myMarkers.length - 1; j++) {
                                     commuteTimes.push(
                                       result.rows[0].elements[j].duration.value
                                     );
@@ -776,12 +803,80 @@ function App() {
                                     ...commuteTimes
                                   );
                                   if (maxCommuteTime < commuteTime) {
-                                    placeCircle(
-                                      marker.coords,
-                                      avgWalkingSpeed *
-                                        (commuteTime - maxCommuteTime),
-                                      true
-                                    );
+                                    center = marker.coords;
+                                    let radius = avgWalkingSpeed * (commuteTime - maxCommuteTime);
+                                    let walkingFlag = true;
+                                    const circle = new google.maps.Circle({
+                                      strokeColor: "#FF0000",
+                                      strokeOpacity: 0.8,
+                                      strokeWeight: 0,
+                                      fillColor: "#FF0000",
+                                      fillOpacity: 0.15,
+                                      map,
+                                      center: center,
+                                      radius: radius,
+                                    });
+                                    // Add a listener for when the circle is clicked
+                                    circle.addListener("click", function () {
+                                      turnOn();
+                                      let walkingTime = Math.round(radius / avgWalkingSpeed / 60);
+                                      let tubeTime = Math.round(commuteTime / 60 - walkingTime);
+                                      const circleRadius = radius / 1609.34; //in miles
+                                      if (walkingFlag == true) {
+                                        changeLogo(WalkingLogo);
+                                        changeTitle("Walking");
+                                        changeGeneralText(
+                                          "This is a walking only route, where the walking will be up to " +
+                                            walkingTime +
+                                            " minutes."
+                                        );
+                                        changeInfoText(
+                                          "The closer you live to your destination within the circle, the less time you will spend walking."
+                                        );
+                                        var closestTube = tubeStations[0];
+                                        const closestTubeStation = async () => {
+                                          const lat = Number(center.lat);
+                                          const lng = Number(center.lng);
+                                          //calculate pythagraous distance between lat lng and closestTube
+                                          var closestDistance = Math.sqrt(
+                                            (lat - closestTube.coords.lat) ** 2 +
+                                              (lng - closestTube.coords.lng) ** 2
+                                          );
+                                          console.log("closest distance: ");
+                                          console.log(closestDistance);
+                                          for (var i = 1; tubeStations[i]; i++) {
+                                            if (
+                                              closestDistance >
+                                              Math.sqrt(
+                                                (lat - tubeStations[i].coords.lat) ** 2 +
+                                                  (lng - tubeStations[i].coords.lng) ** 2
+                                              )
+                                            ) {
+                                              closestTube = tubeStations[i];
+                                              closestDistance = Math.sqrt(
+                                                (lat - tubeStations[i].coords.lat) ** 2 +
+                                                  (lng - tubeStations[i].coords.lng) ** 2
+                                              );
+                                            }
+                                          }
+                                        };
+                                        closestTubeStation();
+                                        generateZooplaLink(closestTube.name, circleRadius);
+                                      } else {
+                                        changeLogo(TubeLogo);
+                                        for (var i = 0; tubeStations[i]; i++) {
+                                          if (tubeStations[i].coords == center) {
+                                            changeTitle(tubeStations[i].name);
+                                            changeGeneralText(tubeStations[i].generalinfo);
+                                            changeInfoText(tubeStations[i].priceinfo);
+                                            generateZooplaLink(tubeStations[i].name, circleRadius);
+                                            console.log(circleRadius);
+                                          }
+                                        }
+                                      }
+                                    });
+                                    // Add the circle to the circles state
+                                    setCircles((prevCircles) => [...prevCircles, circle]);
                                   }
                                 } else {
                                   console.error(
@@ -791,11 +886,80 @@ function App() {
                               }
                             );
                           } else {
-                            placeCircle(
-                              marker.coords,
-                              avgWalkingSpeed * commuteTime,
-                              true
-                            );
+                            let center = marker.coords;
+                            let radius = avgWalkingSpeed * commuteTime;
+                            let walkingFlag = true;
+                            const circle = new google.maps.Circle({
+                              strokeColor: "#FF0000",
+                              strokeOpacity: 0.8,
+                              strokeWeight: 0,
+                              fillColor: "#FF0000",
+                              fillOpacity: 0.15,
+                              map,
+                              center: center,
+                              radius: radius,
+                            });
+                            // Add a listener for when the circle is clicked
+                            circle.addListener("click", function () {
+                              turnOn();
+                              let walkingTime = Math.round(radius / avgWalkingSpeed / 60);
+                              let tubeTime = Math.round(commuteTime / 60 - walkingTime);
+                              const circleRadius = radius / 1609.34; //in miles
+                              if (walkingFlag == true) {
+                                changeLogo(WalkingLogo);
+                                changeTitle("Walking");
+                                changeGeneralText(
+                                  "This is a walking only route, where the walking will be up to " +
+                                    walkingTime +
+                                    " minutes."
+                                );
+                                changeInfoText(
+                                  "The closer you live to your destination within the circle, the less time you will spend walking."
+                                );
+                                var closestTube = tubeStations[0];
+                                const closestTubeStation = async () => {
+                                  const lat = Number(center.lat);
+                                  const lng = Number(center.lng);
+                                  //calculate pythagraous distance between lat lng and closestTube
+                                  var closestDistance = Math.sqrt(
+                                    (lat - closestTube.coords.lat) ** 2 +
+                                      (lng - closestTube.coords.lng) ** 2
+                                  );
+                                  console.log("closest distance: ");
+                                  console.log(closestDistance);
+                                  for (var i = 1; tubeStations[i]; i++) {
+                                    if (
+                                      closestDistance >
+                                      Math.sqrt(
+                                        (lat - tubeStations[i].coords.lat) ** 2 +
+                                          (lng - tubeStations[i].coords.lng) ** 2
+                                      )
+                                    ) {
+                                      closestTube = tubeStations[i];
+                                      closestDistance = Math.sqrt(
+                                        (lat - tubeStations[i].coords.lat) ** 2 +
+                                          (lng - tubeStations[i].coords.lng) ** 2
+                                      );
+                                    }
+                                  }
+                                };
+                                closestTubeStation();
+                                generateZooplaLink(closestTube.name, circleRadius);
+                              } else {
+                                changeLogo(TubeLogo);
+                                for (var i = 0; tubeStations[i]; i++) {
+                                  if (tubeStations[i].coords == center) {
+                                    changeTitle(tubeStations[i].name);
+                                    changeGeneralText(tubeStations[i].generalinfo);
+                                    changeInfoText(tubeStations[i].priceinfo);
+                                    generateZooplaLink(tubeStations[i].name, circleRadius);
+                                    console.log(circleRadius);
+                                  }
+                                }
+                              }
+                            });
+                            // Add the circle to the circles state
+                            setCircles((prevCircles) => [...prevCircles, circle]);
                           }
                         }
                       } else {
