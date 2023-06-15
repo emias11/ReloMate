@@ -859,9 +859,9 @@ function App() {
                     Enter{" "}
                   </Button>{" "}
                   <div></div>
-                  <Checkbox />
+                  <Checkbox defaultChecked />
                   <span> Tube </span>
-                  <Checkbox />
+                  <Checkbox defaultChecked />
                   <span> Walking </span> <div></div>
                   <Checkbox />
                   <span> Cycling </span>
@@ -874,6 +874,8 @@ function App() {
                 {cookies.prev && (
                   <Text fontSize="14px" color="grey">
                     Previous searches:
+                    <Spacer />
+                    Commuting up to: {commuteTime / 60} minutes
                   </Text>
                 )}
                 {cookies.prev && (
