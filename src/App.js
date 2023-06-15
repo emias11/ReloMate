@@ -281,12 +281,14 @@ function App() {
   const [generalText, setGeneralText] = useState("Next");
   const [infoText, setInfoText] = useState("Info");
   const [title, setTitle] = useState("Title");
+  const [timeText, setTimeText] = useState("Time");
   const [zooplaLink, setZooplaLink] = useState("");
   const [displaylogo, setLogo] = useState(TubeLogo);
   const changeLogo = (ReactComponent) => setLogo(ReactComponent);
   const changeGeneralText = (text) => setGeneralText(text);
   const changeInfoText = (text) => setInfoText(text);
   const changeTitle = (text) => setTitle(text);
+  const changeTimeText = (text) => setTimeText(text);
 
   const addMarker = (coords) => {
     setId((id) => id + 1);
@@ -461,16 +463,19 @@ function App() {
     // Add a listener for when the circle is clicked
     circle.addListener("click", function () {
       turnOn();
+
+      // Calculate the walking and tube times
       let walkingTime = Math.round(radius / avgWalkingSpeed / 60);
       let tubeTime = Math.round(commuteTime / 60 - walkingTime);
       const circleRadius = radius / 1609.34; //in miles
       if (walkingFlag == true) {
         changeLogo(WalkingLogo);
         changeTitle("Walking");
+        changeTimeText("Walking will be up to " +
+        walkingTime +
+        " minutes.");
         changeGeneralText(
-          "This is a walking only route, where the walking will be up to " +
-            walkingTime +
-            " minutes."
+          "This is a walking only route."
         );
         changeInfoText(
           "The closer you live to your destination within the circle, the less time you will spend walking."
@@ -509,10 +514,10 @@ function App() {
         for (var i = 0; tubeStations[i]; i++) {
           if (tubeStations[i].coords == center) {
             changeTitle(tubeStations[i].name);
+            changeTimeText("Walking time: " + walkingTime + " minutes. Tube time: " + tubeTime + " minutes.");
             changeGeneralText(tubeStations[i].generalinfo);
             changeInfoText(tubeStations[i].priceinfo);
             generateZooplaLink(tubeStations[i].name, circleRadius);
-            console.log(circleRadius);
           }
         }
       }
@@ -643,6 +648,8 @@ function App() {
               </Link>
             </Flex>
             <br></br>
+            <Text fontSize="13.5px">{timeText}</Text>
+            <br></br>
             <Text fontSize="13.5px">{generalText}</Text>
             <br></br>
             <Text fontSize="13.5px">{infoText}</Text>
@@ -767,6 +774,7 @@ function App() {
                                 for (var i = 0; tubeStations[i]; i++) {
                                   if (tubeStations[i].coords == center) {
                                     changeTitle(tubeStations[i].name);
+                                    changeTimeText("Walking time: " + walkingTime + " minutes. Tube time: " + tubeTime + " minutes.");
                                     changeGeneralText(tubeStations[i].generalinfo);
                                     changeInfoText(tubeStations[i].priceinfo);
                                     generateZooplaLink(tubeStations[i].name, circleRadius);
