@@ -319,6 +319,7 @@ function App() {
 
   const placeMarkerWithHistory = async () => {
     let address = originRef.current.value;
+    originRef.current.value = "";
     var geocoder = new google.maps.Geocoder();
     await geocoder.geocode(
       { address: address },
@@ -344,6 +345,7 @@ function App() {
 
   const placeMarker = async () => {
     let address = originRef.current.value;
+    originRef.current.value = "";
     var geocoder = new google.maps.Geocoder();
     await geocoder.geocode(
       { address: address },
@@ -1010,7 +1012,11 @@ function App() {
                 <Autocomplete>
                   <Input
                     type="text"
-                    placeholder="Where will you be working..."
+                    placeholder= {
+                      markers.length > 0 
+                      ? "Would you like to consider any other commutes?" 
+                      : "Where will you be commuting to?"
+                    }
                     ref={originRef}
                   />
                 </Autocomplete>
