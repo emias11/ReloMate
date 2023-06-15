@@ -33,6 +33,7 @@ import Popup from "reactjs-popup";
 import "reactjs-popup/dist/index.css";
 import { CookiesProvider, useCookies } from "react-cookie";
 import { ReactComponent as TubeLogo } from "./logo.svg";
+import { ReactComponent as WalkingLogo } from "./walking.svg";
 import { set } from "lodash";
 
 var commuteTime = 40 * 60; // seconds
@@ -281,6 +282,8 @@ function App() {
   const [infoText, setInfoText] = useState("Info");
   const [title, setTitle] = useState("Title");
   const [zooplaLink, setZooplaLink] = useState("");
+  const [displaylogo, setLogo] = useState(TubeLogo);
+  const changeLogo = (ReactComponent) => setLogo(ReactComponent);
   const changeGeneralText = (text) => setGeneralText(text);
   const changeInfoText = (text) => setInfoText(text);
   const changeTitle = (text) => setTitle(text);
@@ -462,10 +465,47 @@ function App() {
       let tubeTime = Math.round(commuteTime / 60 - walkingTime);
       const circleRadius = radius / 1609.34; //in miles
       if (walkingFlag == true) {
-        changeTitle("Walking only route");
-        changeGeneralText("");
-        changeInfoText("");
+        changeLogo(WalkingLogo);
+        changeTitle("Walking");
+        changeGeneralText(
+          "This is a walking only route, where the walking will be up to " +
+            walkingTime +
+            " minutes."
+        );
+        changeInfoText(
+          "The closer you live to your destination within the circle, the less time you will spend walking."
+        );
+        var closestTube = tubeStations[0];
+        const closestTubeStation = async () => {
+          const lat = Number(center.lat);
+          const lng = Number(center.lng);
+          //calculate pythagraous distance between lat lng and closestTube
+          var closestDistance = Math.sqrt(
+            (lat - closestTube.coords.lat) ** 2 +
+              (lng - closestTube.coords.lng) ** 2
+          );
+          console.log("closest distance: ");
+          console.log(closestDistance);
+          for (var i = 1; tubeStations[i]; i++) {
+            if (
+              closestDistance >
+              Math.sqrt(
+                (lat - tubeStations[i].coords.lat) ** 2 +
+                  (lng - tubeStations[i].coords.lng) ** 2
+              )
+            ) {
+              closestTube = tubeStations[i];
+              closestDistance = Math.sqrt(
+                (lat - tubeStations[i].coords.lat) ** 2 +
+                  (lng - tubeStations[i].coords.lng) ** 2
+              );
+            }
+          }
+        };
+        closestTubeStation();
+        generateZooplaLink(closestTube.name, circleRadius);
       } else {
+        changeLogo(TubeLogo);
         for (var i = 0; tubeStations[i]; i++) {
           if (tubeStations[i].coords == center) {
             changeTitle(tubeStations[i].name);
@@ -586,20 +626,23 @@ function App() {
               onClick={turnOff}
             ></IconButton>
             <Flex direction={"row"} align="center">
-              <Icon as={TubeLogo} boxSize={10} height={10} mr={3} />
+              <Icon as={displaylogo} boxSize={10} height={10} mr={3} />
               <Text>{title}</Text>
             </Flex>
             <br></br>
-            <HStack>
+            <Flex direction="column">
               <Link
                 href={zooplaLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 isExternal
               >
-                <Icon as={Logo} boxSize={50} height={30} />
+                <Button variant="outline" colorScheme="purple">
+                  <Icon as={Logo} boxSize={50} height={30} />
+                </Button>
               </Link>
-            </HStack>
+            </Flex>
+            <br></br>
             <Text fontSize="13.5px">{generalText}</Text>
             <br></br>
             <Text fontSize="13.5px">{infoText}</Text>
