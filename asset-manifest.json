@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/ReloMate/static/css/main.2517ad09.css",
-    "main.js": "/ReloMate/static/js/main.db63342f.js",
+    "main.js": "/ReloMate/static/js/main.2405aa10.js",
     "static/media/walking.svg": "/ReloMate/static/media/walking.9e98b8f11219e58b21968512a8ddab2d.svg",
     "static/media/logo.svg": "/ReloMate/static/media/logo.4abade299599668c2bf03e4cf7762c82.svg",
     "static/media/zoopla-cropped.svg": "/ReloMate/static/media/zoopla-cropped.7a9b38cb19d370dbd094984cede9e244.svg",
     "index.html": "/ReloMate/index.html",
     "main.2517ad09.css.map": "/ReloMate/static/css/main.2517ad09.css.map",
-    "main.db63342f.js.map": "/ReloMate/static/js/main.db63342f.js.map"
+    "main.2405aa10.js.map": "/ReloMate/static/js/main.2405aa10.js.map"
   },
   "entrypoints": [
     "static/css/main.2517ad09.css",
-    "static/js/main.db63342f.js"
+    "static/js/main.2405aa10.js"
   ]
 }
